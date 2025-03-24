@@ -1,0 +1,46 @@
+body {
+    background: linear-gradient(135deg, #e6f0ff, #ffffff);
+    font-family: 'Poppins', sans-serif;
+}
+
+.gradient-bg {
+    background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.converter {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease-in-out;
+}
+
+.converter:hover {
+    transform: scale(1.02);
+    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.1), -10px -10px 20px rgba(255, 255, 255, 0.8);
+}
+
+.shadow-3d {
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+}
+
+.btn-primary {
+    background-color: #0077ff;
+    border-color: #0077ff;
+    border-radius: 50px;
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background-color: #005fcc;
+    border-color: #005fcc;
+}
+
+h2, h4 {
+    color: #005fcc;
+    font-weight: bold;
+}

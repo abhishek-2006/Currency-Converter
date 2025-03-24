@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Currency Converter</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="gradient-bg">
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+      <div class="converter p-4 shadow-lg">
+        <h2 class="text-center mb-4">Currency Converter</h2>
+        <form id="converterForm">
+          <div class="mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <input type="number" id="amount" class="form-control" placeholder="Enter amount" required>
+          </div>
+          <div class="mb-3">
+            <label for="fromCurrency" class="form-label">From</label>
+            <select id="fromCurrency" class="form-select">
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="toCurrency" class="form-label">To</label>
+            <select id="toCurrency" class="form-select">
+            </select>
+          </div>
+          <div class="text-center">
+            <button type="button" class="btn btn-primary w-100" onclick="convertCurrency()">Convert</button>
+          </div>
+        </form>
+        <h4 class="text-center mt-4" id="result"></h4>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
