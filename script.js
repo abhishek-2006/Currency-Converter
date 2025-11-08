@@ -8,6 +8,28 @@ class CurrencyConverter {
         this.searchDebounceTimer = null;
         this.isLoading = false;
 
+        // Advanced features
+        this.multiCurrencyMode = false;
+        this.selectedCurrencies = [];
+        this.historicalRates = new Map();
+        this.calculatorMode = false;
+        this.rateAlerts = this.loadRateAlerts();
+        this.settings = this.loadSettings();
+        this.analytics = this.loadAnalytics();
+        this.soundEnabled = true;
+        this.hapticEnabled = true;
+        this.pullToRefreshEnabled = false;
+        this.newsArticles = [];
+
+        // Audio context for sound effects
+        this.audioContext = null;
+
+        // Initialize tooltips
+        this.tooltips = new Map();
+
+        // Currency comparison data
+        this.comparisonData = [];
+
         this.init();
     }
 
