@@ -1,40 +1,340 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modern Currency Converter</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional currency converter with real-time exchange rates, advanced features, and modern glassmorphism design">
+    <meta name="keywords" content="currency converter, exchange rates, finance, money converter, forex">
+    <meta name="author" content="Currency Converter Pro">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Currency Converter Pro">
+    <meta property="og:description" content="Professional currency converter with real-time rates and advanced features">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="./icon-192x192.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="./icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./icon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon-180x180.png">
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Currency Converter">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Preload Critical Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <title>Currency Converter Pro - Professional Exchange Rates & Conversion</title>
 </head>
 <body>
-  <div class="gradient-bg">
-    <div class="container d-flex justify-content-center align-items-center min-vh-100">
-      <div class="converter p-4 shadow-lg">
-        <h2 class="text-center mb-4">Currency Converter</h2>
-        <form id="converterForm">
-          <div class="mb-3">
-            <label for="amount" class="form-label">Amount</label>
-            <input type="number" id="amount" class="form-control" placeholder="Enter amount" required>
-          </div>
-          <div class="mb-3">
-            <label for="fromCurrency" class="form-label">From</label>
-            <select id="fromCurrency" class="form-select">
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="toCurrency" class="form-label">To</label>
-            <select id="toCurrency" class="form-select">
-            </select>
-          </div>
-          <div class="text-center">
-            <button type="button" class="btn btn-primary w-100" onclick="convertCurrency()">Convert</button>
-          </div>
-        </form>
-        <h4 class="text-center mt-4" id="result"></h4>
-      </div>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="visually-hidden skip-link">Skip to main content</a>
+
+    <!-- Animated particles background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay" role="dialog" aria-label="Loading">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading currency data...</div>
+        </div>
     </div>
-  </div>
-  <script src="script.js"></script>
+
+    <!-- Message container for notifications -->
+    <div class="message-container" id="errorMessage" role="alert" aria-live="polite"></div>
+
+    <!-- Main container -->
+    <div class="main-container">
+        <!-- Header -->
+        <header class="header" role="banner">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon" role="img" aria-label="Currency symbol">💱</span>
+                    <h1 class="logo-text">Currency Converter Pro</h1>
+                </div>
+                <button
+                    class="theme-toggle"
+                    id="themeToggle"
+                    aria-label="Toggle dark mode"
+                    title="Toggle theme (Ctrl+D)"
+                >
+                    <span id="themeIcon" role="img" aria-label="Theme icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="app-container" id="main-content">
+            <!-- Left Sidebar - Favorites -->
+            <aside class="sidebar glass-card" role="complementary" aria-label="Favorite currencies">
+                <div class="sidebar-card">
+                    <h2 class="sidebar-title">⭐ Quick Access</h2>
+                    <div class="favorites-bar" id="favoritesBar" role="group" aria-label="Favorite currencies">
+                        <!-- Favorites will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">💡 Tips</h3>
+                    <ul class="tips-list">
+                        <li>Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to convert</li>
+                        <li>Press <kbd>Ctrl</kbd> + <kbd>S</kbd> to swap currencies</li>
+                        <li>Press <kbd>Ctrl</kbd> + <kbd>K</kbd> to focus amount</li>
+                        <li>Press <kbd>Esc</kbd> to reset form</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Center - Main Converter -->
+            <section class="converter-section" role="main">
+                <div class="converter-card glass-card">
+                    <h2 class="visually-hidden">Currency Converter</h2>
+
+                    <form id="converterForm" novalidate>
+                        <!-- Amount Input Section -->
+                        <div class="form-group">
+                            <label for="amount" class="form-label">Amount</label>
+                            <input
+                                type="text"
+                                id="amount"
+                                class="form-input"
+                                placeholder="Enter amount to convert"
+                                inputmode="decimal"
+                                autocomplete="off"
+                                aria-describedby="amountHelp"
+                                required
+                            >
+                            <small id="amountHelp" class="form-text text-muted">
+                                Enter the amount you want to convert
+                            </small>
+                        </div>
+
+                        <!-- Amount Presets -->
+                        <div class="amount-presets" role="group" aria-label="Quick amount buttons">
+                            <button type="button" class="preset-button" data-amount="10">$10</button>
+                            <button type="button" class="preset-button" data-amount="50">$50</button>
+                            <button type="button" class="preset-button" data-amount="100">$100</button>
+                            <button type="button" class="preset-button" data-amount="500">$500</button>
+                            <button type="button" class="preset-button" data-amount="1000">$1,000</button>
+                        </div>
+
+                        <!-- From Currency Section -->
+                        <div class="form-group">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="fromCurrencySearch" class="form-label mb-0">From Currency</label>
+                                <small class="text-muted">Start typing to search</small>
+                            </div>
+
+                            <!-- Search input for from currency -->
+                            <input
+                                type="search"
+                                id="fromCurrencySearch"
+                                class="form-control currency-search"
+                                placeholder="Search currency..."
+                                autocomplete="off"
+                                aria-label="Search from currency"
+                            >
+
+                            <!-- From currency dropdown -->
+                            <div class="currency-dropdown">
+                                <select
+                                    id="fromCurrency"
+                                    class="form-select currency-select"
+                                    aria-label="Select source currency"
+                                    required
+                                >
+                                    <option value="">Loading currencies...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Swap Button -->
+                        <div class="swap-section">
+                            <button
+                                type="button"
+                                id="swapButton"
+                                class="swap-button"
+                                aria-label="Swap currencies"
+                                title="Swap currencies (Ctrl+S)"
+                            >
+                                <span class="swap-icon" role="img" aria-label="Swap">⇄</span>
+                            </button>
+                        </div>
+
+                        <!-- To Currency Section -->
+                        <div class="form-group">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="toCurrencySearch" class="form-label mb-0">To Currency</label>
+                                <small class="text-muted">Start typing to search</small>
+                            </div>
+
+                            <!-- Search input for to currency -->
+                            <input
+                                type="search"
+                                id="toCurrencySearch"
+                                class="form-control currency-search"
+                                placeholder="Search currency..."
+                                autocomplete="off"
+                                aria-label="Search to currency"
+                            >
+
+                            <!-- To currency dropdown -->
+                            <div class="currency-dropdown">
+                                <select
+                                    id="toCurrency"
+                                    class="form-select currency-select"
+                                    aria-label="Select target currency"
+                                    required
+                                >
+                                    <option value="">Loading currencies...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Convert Button -->
+                        <div class="form-group">
+                            <button
+                                type="button"
+                                id="convertButton"
+                                class="button-primary"
+                                aria-label="Convert currency"
+                            >
+                                <span class="button-text">Convert Currency</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Result Display -->
+                    <div class="result-container" id="result" role="region" aria-live="polite" aria-label="Conversion result">
+                        <!-- Results will be populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Sidebar - History -->
+            <aside class="sidebar glass-card" role="complementary" aria-label="Conversion history">
+                <div class="sidebar-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="sidebar-title">📊 Recent Conversions</h2>
+                        <button
+                            id="clearHistory"
+                            class="btn btn-sm btn-outline-danger"
+                            aria-label="Clear history"
+                        >
+                            Clear
+                        </button>
+                    </div>
+
+                    <div class="history-container" id="historyContainer">
+                        <div class="history-list" id="historyList" role="list">
+                            <!-- History items will be populated by JavaScript -->
+                        </div>
+
+                        <div class="empty-history text-center py-4" id="emptyHistory">
+                            <p class="text-muted">No recent conversions</p>
+                            <small class="text-muted">Your conversion history will appear here</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rate Information -->
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">ℹ️ Rate Information</h3>
+                    <div class="rate-info">
+                        <p class="mb-2">
+                            <strong>Source:</strong> European Central Bank
+                        </p>
+                        <p class="mb-2">
+                            <strong>Update:</strong> Real-time rates
+                        </p>
+                        <p class="mb-0">
+                            <strong>Currencies:</strong> 150+ supported
+                        </p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer" role="contentinfo">
+            <div class="container">
+                <p class="mb-2">© 2024 Currency Converter Pro. Professional currency conversion.</p>
+                <p class="mb-0 small text-muted">
+                    Rates provided by <a href="https://www.ecb.europa.eu/stats/exchange/eurofxref/html/index.en.html" target="_blank" rel="noopener">European Central Bank</a> •
+                    <a href="#privacy" class="text-muted">Privacy</a> •
+                    <a href="#terms" class="text-muted">Terms</a>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+
+    <!-- Analytics and Performance Monitoring -->
+    <script>
+        // Performance monitoring
+        if ('performance' in window) {
+            window.addEventListener('load', () => {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
+
+                // Log performance data (in production, send to analytics)
+                console.log(`Page load time: ${loadTime}ms`);
+            });
+        }
+
+        // Error tracking
+        window.addEventListener('error', (e) => {
+            console.error('JavaScript error:', e.error);
+            // In production, send to error tracking service
+        });
+
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize particles when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+        });
+    </script>
 </body>
 </html>
