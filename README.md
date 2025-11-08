@@ -143,8 +143,6 @@ Currency-Converter/
 ├── README.md               # This file
 ├── LICENSE                 # MIT License
 └── assets/                 # Images and icons (if present)
-    ├── icon-192x192.png
-    ├── icon-512x512.png
     └── favicon.ico
 ```
 
@@ -256,9 +254,6 @@ this.trackEvent('debug_test');
 - [ ] Multi-language support
 - [ ] Currency widget for websites
 - [ ] Portfolio tracking
-- [ ] API for third-party integration
-- [ ] Cloud sync for settings and history
-- [ ] Advanced alerts with multiple conditions
 
 ### Version History
 - **v2.0.0** - Complete rewrite with advanced features
@@ -299,13 +294,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Developer
 - **Name**: Abhishek Shah
 - **GitHub**: [@abhishek-2006](https://github.com/abhishek-2006)
-- **Email**: abhishek@example.com
+- **Email**: shahabhishek409@gmail.com
 - **Website**: [abhishek-2006.github.io](https://abhishek-2006.github.io)
 
 ### Support
 - 📧 Create an [Issue](https://github.com/abhishek-2006/Currency-Converter/issues)
 - 💬 Join our [Discussions](https://github.com/abhishek-2006/Currency-Converter/discussions)
-- 🐦 Follow on [Twitter](https://twitter.com/abhishekshah)
+- 🐦 Follow on [Twitter](https://twitter.com/shahabhishek409)
 
 ---
 
