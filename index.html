@@ -266,15 +266,110 @@
             </aside>
         </main>
 
+            <!-- Right Sidebar - History -->
+            <aside class="sidebar glass-card" role="complementary" aria-label="Conversion history">
+                <div class="sidebar-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="sidebar-title">📊 Recent Conversions</h2>
+                        <button
+                            id="clearHistory"
+                            class="btn btn-sm btn-outline-danger"
+                            aria-label="Clear history"
+                        >
+                            Clear
+                        </button>
+                    </div>
+
+                    <div class="history-container" id="historyContainer">
+                        <div class="history-list" id="historyList" role="list">
+                            <!-- History items will be populated by JavaScript -->
+                        </div>
+
+                        <div class="empty-history text-center py-4" id="emptyHistory">
+                            <p class="text-muted">No recent conversions</p>
+                            <small class="text-muted">Your conversion history will appear here</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Features -->
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">🚀 Advanced Features</h3>
+                    <div class="feature-buttons">
+                        <button id="multiCurrencyToggle" class="feature-btn" title="Convert to multiple currencies">
+                            🌍 Multi-Currency
+                        </button>
+                        <button id="calculatorToggle" class="feature-btn" title="Open calculator mode">
+                            🧮 Calculator
+                        </button>
+                        <button id="rateAlertButton" class="feature-btn" title="Set rate alerts">
+                            🔔 Rate Alerts
+                        </button>
+                        <button id="exportHistory" class="feature-btn" title="Export conversion history">
+                            📥 Export
+                        </button>
+                        <button id="settingsButton" class="feature-btn" title="Application settings">
+                            ⚙️ Settings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Currency News -->
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">📰 Currency News</h3>
+                    <div id="newsContainer">
+                        <!-- News will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Rate Information -->
+                <div class="sidebar-card">
+                    <h3 class="sidebar-title">ℹ️ Rate Information</h3>
+                    <div class="rate-info">
+                        <p class="mb-2">
+                            <strong>Source:</strong> European Central Bank
+                        </p>
+                        <p class="mb-2">
+                            <strong>Update:</strong> Real-time rates
+                        </p>
+                        <p class="mb-0">
+                            <strong>Currencies:</strong> 150+ supported
+                        </p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
         <!-- Footer -->
-        <footer class="footer" role="contentinfo">
-            <div class="container">
-                <p class="mb-2">© 2024 Currency Converter Pro. Professional currency conversion.</p>
-                <p class="mb-0 small text-muted">
-                    Rates provided by <a href="https://www.ecb.europa.eu/stats/exchange/eurofxref/html/index.en.html" target="_blank" rel="noopener">European Central Bank</a> •
-                    <a href="#privacy" class="text-muted">Privacy</a> •
-                    <a href="#terms" class="text-muted">Terms</a>
-                </p>
+        <footer class="app-footer" role="contentinfo">
+            <div class="footer-container">
+                <div class="flex flex-col justify-center items-center text-center">
+                    <div class="footer-text-content">
+                        &copy; 2025 Currency Converter Pro | Designed by:
+                        <a href="https://github.com/abhishek-2006"
+                          target="_blank"
+                          rel="noopener"
+                          class="footer-link">
+                          Abhishek Shah
+                        </a>
+                    </div>
+                    <div class="footer-links">
+                        <a href="#privacy" class="footer-link">Privacy Policy</a> •
+                        <a href="#terms" class="footer-link">Terms of Service</a> •
+                        <a href="https://www.ecb.europa.eu/stats/exchange/eurofxref/html/index.en.html"
+                           target="_blank"
+                           rel="noopener"
+                           class="footer-link">
+                           Rate Source: ECB
+                        </a>
+                    </div>
+                    <div class="footer-features">
+                        <span class="feature-tag">🌍 150+ Currencies</span>
+                        <span class="feature-tag">📱 PWA Ready</span>
+                        <span class="feature-tag">🔒 Secure</span>
+                        <span class="feature-tag">⚡ Real-time</span>
+                    </div>
+                </div>
             </div>
         </footer>
     </div>
