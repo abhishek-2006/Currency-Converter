@@ -1,0 +1,151 @@
+{
+  "name": "currency-converter-pro",
+  "version": "2.0.0",
+  "description": "A professional, feature-rich currency converter with real-time exchange rates, advanced analytics, and modern glassmorphism design",
+  "main": "index.html",
+  "homepage": "https://abhishek-2006.github.io/Currency-Converter/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abhishek-2006/Currency-Converter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/abhishek-2006/Currency-Converter/issues"
+  },
+  "author": {
+    "name": "Abhishek Shah",
+    "email": "abhishek@example.com",
+    "url": "https://github.com/abhishek-2006"
+  },
+  "license": "MIT",
+  "keywords": [
+    "currency",
+    "converter",
+    "exchange-rate",
+    "finance",
+    "money",
+    "forex",
+    "trading",
+    "banking",
+    "pwa",
+    "glassmorphism",
+    "javascript",
+    "html5",
+    "css3",
+    "web-app",
+    "progressive-web-app"
+  ],
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx http-server -p 8000",
+    "build": "echo 'No build process required for static site'",
+    "deploy": "echo 'Deploy to GitHub Pages or your preferred hosting'",
+    "lint": "eslint script.js",
+    "lint:fix": "eslint script.js --fix",
+    "format": "prettier --write *.html *.css *.js",
+    "test": "echo 'Run manual tests in browser'",
+    "validate": "html-validate index.html",
+    "compress": "gzip -k index.html style.css script.js",
+    "stats": "wc -l *.html *.css *.js",
+    "clean": "rm -rf node_modules/ package-lock.json"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "html-validator": "^0.2.3",
+    "http-server": "^14.1.1",
+    "prettier": "^3.2.5",
+    "stylelint": "^16.2.1",
+    "stylelint-config-standard": "^36.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie <= 11"
+  ],
+  "files": [
+    "index.html",
+    "style.css",
+    "script.js",
+    "manifest.json",
+    "sw.js",
+    "LICENSE",
+    "README.md",
+    "assets/"
+  ],
+  "manifest": {
+    "name": "Currency Converter Pro",
+    "short_name": "CurrencyPro",
+    "description": "Professional currency converter with real-time rates",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#6366f1",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "en",
+    "dir": "ltr",
+    "categories": ["finance", "business", "productivity", "utilities"],
+    "icons": [
+      {
+        "src": "icon-72x72.png",
+        "sizes": "72x72",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "icon-96x96.png",
+        "sizes": "96x96",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "icon-128x128.png",
+        "sizes": "128x128",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "icon-144x144.png",
+        "sizes": "144x144",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "icon-152x152.png",
+        "sizes": "152x152",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "icon-384x384.png",
+        "sizes": "384x384",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable any"
+      }
+    ]
+  },
+  "config": {
+    "port": 8000,
+    "host": "localhost"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/abhishek-2006"
+  }
+}
