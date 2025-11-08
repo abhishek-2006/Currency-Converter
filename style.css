@@ -68,6 +68,15 @@
   --z-loading: 2000;
 }
 
+/* Light Theme Variables */
+:root {
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --bg-primary: rgba(255, 255, 255, 0.9);
+  --bg-secondary: rgba(255, 255, 255, 0.7);
+}
+
 /* Dark Theme Variables */
 [data-theme="dark"] {
   --glass-bg: rgba(0, 0, 0, 0.3);
