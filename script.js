@@ -681,6 +681,1208 @@ class CurrencyConverter {
 
         // Update favorite indicators
         this.updateFavoriteButtons();
+
+        // Initialize advanced features
+        this.initAdvancedFeatures();
+    }
+
+    // Initialize advanced features
+    initAdvancedFeatures() {
+        this.initPullToRefresh();
+        this.loadCurrencyNews();
+        this.checkRateAlerts();
+        this.requestNotificationPermission();
+
+        // Setup additional event listeners for advanced features
+        this.setupAdvancedEventListeners();
+
+        // Track analytics
+        this.trackEvent('app_initialized');
+    }
+
+    // Setup advanced event listeners
+    setupAdvancedEventListeners() {
+        // Amount preset buttons
+        document.querySelectorAll('.preset-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const amount = e.target.dataset.amount;
+                document.getElementById('amount').value = amount;
+                this.playSound('click');
+                this.triggerHaptic('click');
+                this.trackEvent('preset_amount_used', { amount });
+            });
+        });
+
+        // Multi-currency toggle
+        document.getElementById('multiCurrencyToggle')?.addEventListener('click', () => {
+            this.toggleMultiCurrencyMode();
+        });
+
+        // Calculator mode toggle
+        document.getElementById('calculatorToggle')?.addEventListener('click', () => {
+            this.enableCalculatorMode();
+        });
+
+        // Export history
+        document.getElementById('exportHistory')?.addEventListener('click', () => {
+            this.exportConversionHistory();
+        });
+
+        // Settings button
+        document.getElementById('settingsButton')?.addEventListener('click', () => {
+            this.showSettingsModal();
+        });
+
+        // Rate alerts
+        document.getElementById('rateAlertButton')?.addEventListener('click', () => {
+            this.showRateAlertModal();
+        });
+    }
+
+    // Multi-Currency Conversion
+    async convertToMultipleCurrencies(amount, fromCurrency, targetCurrencies) {
+        if (!amount || !fromCurrency || !targetCurrencies.length) {
+            this.showError('Please provide valid data for multi-currency conversion');
+            return;
+        }
+
+        this.showLoading(true);
+        const results = [];
+
+        try {
+            const data = await this.fetchWithCache(`${this.apiUrl}/${fromCurrency}`);
+
+            for (const targetCurrency of targetCurrencies) {
+                if (data.rates[targetCurrency]) {
+                    const convertedAmount = (amount * data.rates[targetCurrency]).toFixed(2);
+                    results.push({
+                        currency: targetCurrency,
+                        amount: convertedAmount,
+                        rate: data.rates[targetCurrency],
+                        name: this.currencyNames[targetCurrency] || targetCurrency
+                    });
+                }
+            }
+
+            this.displayMultiCurrencyResults(amount, fromCurrency, results);
+            this.playSound('success');
+            this.triggerHaptic('success');
+            this.trackEvent('multi_currency_conversion', {
+                fromCurrency,
+                targetCurrencies: targetCurrencies.length
+            });
+
+        } catch (error) {
+            this.handleError('Multi-currency conversion failed', error);
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    displayMultiCurrencyResults(amount, fromCurrency, results) {
+        const resultContainer = document.getElementById('result');
+        resultContainer.innerHTML = `
+            <div class="multi-currency-results">
+                <div class="result-header">
+                    <h3>${this.formatNumber(amount)} ${fromCurrency}</h3>
+                    <p>equals</p>
+                </div>
+                <div class="currency-grid">
+                    ${results.map(result => `
+                        <div class="currency-result-item">
+                            <div class="currency-flag">${this.getCurrencyFlag(result.currency)}</div>
+                            <div class="currency-info">
+                                <div class="currency-amount">${this.formatNumber(result.amount)} ${result.currency}</div>
+                                <div class="currency-name">${result.name}</div>
+                                <div class="currency-rate">1 ${fromCurrency} = ${result.rate.toFixed(4)} ${result.currency}</div>
+                            </div>
+                            <button class="copy-individual" onclick="converter.copyToClipboard('${this.formatNumber(result.amount)} ${result.currency}')">
+                                📋
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="multi-currency-actions">
+                    <button class="export-btn" onclick="converter.exportMultiCurrencyResults(${JSON.stringify(results)}, ${amount}, '${fromCurrency}')">
+                        📥 Export Results
+                    </button>
+                    <button class="compare-btn" onclick="converter.compareCurrencies(${JSON.stringify(results)})">
+                        📊 Compare Rates
+                    </button>
+                    <button class="historical-btn" onclick="converter.getHistoricalRates('${fromCurrency}', '${results[0].currency}')">
+                        📈 View History
+                    </button>
+                </div>
+            </div>
+        `;
+        resultContainer.classList.add('show');
+    }
+
+    // Historical Rates
+    async getHistoricalRates(baseCurrency, targetCurrency, days = 7) {
+        this.showLoading(true);
+        try {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+
+            const historicalData = [];
+
+            // Since we don't have a real historical API, we'll simulate it
+            // In production, this would use a real historical rates API
+            const currentRate = await this.getCurrentRate(baseCurrency, targetCurrency);
+
+            for (let i = 0; i <= days; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+
+                // Simulate historical rate with small variations
+                const variation = (Math.random() - 0.5) * 0.1; // ±5% variation
+                const historicalRate = currentRate * (1 + variation);
+
+                historicalData.push({
+                    date: date.toISOString().split('T')[0],
+                    rate: historicalRate,
+                    formattedDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                });
+            }
+
+            this.displayHistoricalRates(baseCurrency, targetCurrency, historicalData);
+            this.playSound('info');
+            this.trackEvent('historical_rates_viewed', { baseCurrency, targetCurrency, days });
+
+        } catch (error) {
+            this.handleError('Failed to load historical rates', error);
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    displayHistoricalRates(fromCurrency, toCurrency, historicalData) {
+        const modal = this.createModal('Historical Exchange Rates', `
+            <div class="historical-rates-container">
+                <div class="rate-header">
+                    <h4>${fromCurrency} to ${toCurrency}</h4>
+                    <p class="rate-period">Last ${historicalData.length} days</p>
+                </div>
+                <div class="rates-chart">
+                    ${historicalData.map((data, index) => {
+                        const maxRate = Math.max(...historicalData.map(d => d.rate));
+                        const minRate = Math.min(...historicalData.map(d => d.rate));
+                        const range = maxRate - minRate;
+                        const normalizedHeight = range > 0 ? ((data.rate - minRate) / range) * 100 : 50;
+                        return `
+                            <div class="rate-bar" style="height: ${normalizedHeight}%">
+                                <div class="rate-tooltip">
+                                    ${data.formattedDate}: ${data.rate.toFixed(4)}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="rate-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Highest:</span>
+                        <span class="stat-value">${Math.max(...historicalData.map(d => d.rate)).toFixed(4)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Lowest:</span>
+                        <span class="stat-value">${Math.min(...historicalData.map(d => d.rate)).toFixed(4)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average:</span>
+                        <span class="stat-value">${(historicalData.reduce((sum, d) => sum + d.rate, 0) / historicalData.length).toFixed(4)}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Change:</span>
+                        <span class="stat-value change-value">${((historicalData[historicalData.length - 1].rate / historicalData[0].rate - 1) * 100).toFixed(2)}%</span>
+                    </div>
+                </div>
+                <div class="chart-actions">
+                    <button class="export-chart" onclick="converter.exportHistoricalData(${JSON.stringify(historicalData)}, '${fromCurrency}', '${toCurrency}')">
+                        📥 Export Data
+                    </button>
+                    <button class="set-alert" onclick="converter.createRateAlertFromHistory('${fromCurrency}', '${toCurrency}', ${historicalData[historicalData.length - 1].rate})">
+                        🔔 Set Rate Alert
+                    </button>
+                </div>
+            </div>
+        `);
+        this.showModal(modal);
+    }
+
+    // Currency Calculator Mode
+    enableCalculatorMode() {
+        this.calculatorMode = true;
+        this.trackEvent('calculator_mode_enabled');
+
+        const calculatorHTML = `
+            <div class="calculator-mode">
+                <div class="calc-display">
+                    <div class="calc-expression" id="calcExpression"></div>
+                    <div class="calc-result" id="calcResult">0</div>
+                </div>
+                <div class="calc-buttons">
+                    <div class="calc-row">
+                        <button class="calc-btn calc-clear" onclick="converter.calcClear()">C</button>
+                        <button class="calc-btn calc-operator" onclick="converter.calcOperator('/')">÷</button>
+                        <button class="calc-btn calc-operator" onclick="converter.calcOperator('*')">×</button>
+                        <button class="calc-btn calc-delete" onclick="converter.calcDelete()">←</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('7')">7</button>
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('8')">8</button>
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('9')">9</button>
+                        <button class="calc-btn calc-operator" onclick="converter.calcOperator('-')">-</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('4')">4</button>
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('5')">5</button>
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('6')">6</button>
+                        <button class="calc-btn calc-operator" onclick="converter.calcOperator('+')">+</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('1')">1</button>
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('2')">2</button>
+                        <button class="calc-btn calc-number" onclick="converter.calcNumber('3')">3</button>
+                        <button class="calc-btn calc-equals" onclick="converter.calcEquals()">=</button>
+                    </div>
+                    <div class="calc-row">
+                        <button class="calc-btn calc-number calc-zero" onclick="converter.calcNumber('0')">0</button>
+                        <button class="calc-btn calc-decimal" onclick="converter.calcDecimal()">.</button>
+                        <button class="calc-btn calc-convert" onclick="converter.calcConvert()">Convert</button>
+                    </div>
+                </div>
+                <div class="calc-mode-toggle">
+                    <button onclick="converter.disableCalculatorMode()">Back to Normal</button>
+                </div>
+            </div>
+        `;
+
+        const amountInput = document.getElementById('amount');
+        amountInput.style.display = 'none';
+        amountInput.insertAdjacentHTML('afterend', calculatorHTML);
+        this.showSuccess('Calculator mode enabled');
+        this.playSound('toggle');
+    }
+
+    disableCalculatorMode() {
+        this.calculatorMode = false;
+        this.trackEvent('calculator_mode_disabled');
+
+        const calculator = document.querySelector('.calculator-mode');
+        const amountInput = document.getElementById('amount');
+        if (calculator) calculator.remove();
+        amountInput.style.display = 'block';
+        this.playSound('toggle');
+    }
+
+    // Calculator functions
+    calcDisplay = '0';
+    calcPreviousValue = '';
+    calcOperation = '';
+    calcShouldResetDisplay = false;
+
+    calcNumber(num) {
+        if (this.calcShouldResetDisplay || this.calcDisplay === '0') {
+            this.calcDisplay = num;
+            this.calcShouldResetDisplay = false;
+        } else {
+            this.calcDisplay += num;
+        }
+        this.updateCalcDisplay();
+        this.playSound('click');
+        this.triggerHaptic('click');
+    }
+
+    calcDecimal() {
+        if (this.calcShouldResetDisplay) {
+            this.calcDisplay = '0.';
+            this.calcShouldResetDisplay = false;
+        } else if (this.calcDisplay.indexOf('.') === -1) {
+            this.calcDisplay += '.';
+        }
+        this.updateCalcDisplay();
+        this.playSound('click');
+    }
+
+    calcOperator(op) {
+        if (this.calcOperation !== '') {
+            this.calcEquals();
+        }
+        this.calcPreviousValue = this.calcDisplay;
+        this.calcOperation = op;
+        this.calcShouldResetDisplay = true;
+        this.updateCalcExpression();
+        this.playSound('operator');
+    }
+
+    calcEquals() {
+        if (this.calcOperation === '' || this.calcPreviousValue === '') return;
+
+        const prev = parseFloat(this.calcPreviousValue);
+        const current = parseFloat(this.calcDisplay);
+        let result;
+
+        switch (this.calcOperation) {
+            case '+': result = prev + current; break;
+            case '-': result = prev - current; break;
+            case '*': result = prev * current; break;
+            case '/': result = current !== 0 ? prev / current : 0; break;
+        }
+
+        this.calcDisplay = result.toString();
+        this.calcOperation = '';
+        this.calcPreviousValue = '';
+        this.calcShouldResetDisplay = true;
+        this.updateCalcDisplay();
+        this.updateCalcExpression();
+        this.playSound('equals');
+        this.triggerHaptic('success');
+    }
+
+    calcClear() {
+        this.calcDisplay = '0';
+        this.calcPreviousValue = '';
+        this.calcOperation = '';
+        this.updateCalcDisplay();
+        this.updateCalcExpression();
+        this.playSound('clear');
+    }
+
+    calcDelete() {
+        if (this.calcDisplay.length > 1) {
+            this.calcDisplay = this.calcDisplay.slice(0, -1);
+        } else {
+            this.calcDisplay = '0';
+        }
+        this.updateCalcDisplay();
+        this.playSound('delete');
+    }
+
+    calcConvert() {
+        const amount = parseFloat(this.calcDisplay);
+        document.getElementById('amount').value = amount;
+        this.disableCalculatorMode();
+        this.convertCurrency();
+    }
+
+    updateCalcDisplay() {
+        const resultElement = document.getElementById('calcResult');
+        if (resultElement) {
+            resultElement.textContent = this.formatNumber(this.calcDisplay);
+        }
+    }
+
+    updateCalcExpression() {
+        const expressionElement = document.getElementById('calcExpression');
+        if (expressionElement) {
+            let expression = this.calcPreviousValue;
+            if (this.calcOperation !== '') {
+                const operatorSymbols = { '+': '+', '-': '-', '*': '×', '/': '÷' };
+                expression += ' ' + operatorSymbols[this.calcOperation] + ' ';
+            }
+            expressionElement.textContent = expression;
+        }
+    }
+
+    // Rate Alerts
+    createRateAlert(fromCurrency, toCurrency, targetRate, alertType) {
+        const alert = {
+            id: Date.now(),
+            fromCurrency,
+            toCurrency,
+            targetRate,
+            alertType, // 'above' or 'below'
+            created: new Date().toISOString(),
+            active: true,
+            triggered: false
+        };
+
+        this.rateAlerts.push(alert);
+        this.saveRateAlerts();
+        this.showSuccess(`Rate alert created: ${fromCurrency}/${toCurrency} ${alertType} ${targetRate}`);
+        this.checkRateAlerts(); // Check immediately
+        this.playSound('success');
+        this.triggerHaptic('success');
+        this.trackEvent('rate_alert_created', { fromCurrency, toCurrency, targetRate, alertType });
+    }
+
+    async checkRateAlerts() {
+        const activeAlerts = this.rateAlerts.filter(alert => alert.active && !alert.triggered);
+
+        for (const alert of activeAlerts) {
+            try {
+                const data = await this.fetchWithCache(`${this.apiUrl}/${alert.fromCurrency}`);
+                const currentRate = data.rates[alert.toCurrency];
+
+                if (currentRate) {
+                    let shouldTrigger = false;
+                    if (alert.alertType === 'above' && currentRate >= alert.targetRate) {
+                        shouldTrigger = true;
+                    } else if (alert.alertType === 'below' && currentRate <= alert.targetRate) {
+                        shouldTrigger = true;
+                    }
+
+                    if (shouldTrigger) {
+                        this.triggerRateAlert(alert, currentRate);
+                        alert.triggered = true;
+                        alert.triggeredDate = new Date().toISOString();
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking rate alert:', error);
+            }
+        }
+
+        this.saveRateAlerts();
+    }
+
+    triggerRateAlert(alert, currentRate) {
+        const message = `🔔 Rate Alert: ${alert.fromCurrency}/${alert.toCurrency} is now ${currentRate.toFixed(4)} (${alert.alertType} ${alert.targetRate})`;
+        this.showSuccess(message);
+        this.showNotification(message);
+        this.playSound('alert');
+        this.triggerHaptic('notification');
+        this.trackEvent('rate_alert_triggered', alert);
+    }
+
+    showRateAlertModal() {
+        const fromCurrency = document.getElementById('fromCurrency').value;
+        const toCurrency = document.getElementById('toCurrency').value;
+
+        const modal = this.createModal('Create Rate Alert', `
+            <div class="rate-alert-form">
+                <h4>Set Alert for ${fromCurrency}/${toCurrency}</h4>
+                <div class="form-group">
+                    <label>Alert Type</label>
+                    <select id="alertType" class="form-select">
+                        <option value="above">Alert when rate goes ABOVE</option>
+                        <option value="below">Alert when rate goes BELOW</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Target Rate</label>
+                    <input type="number" id="targetRate" class="form-input" step="0.0001" placeholder="Enter target rate">
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" onclick="converter.createAlertFromModal('${fromCurrency}', '${toCurrency}')">
+                        Create Alert
+                    </button>
+                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">
+                        Cancel
+                    </button>
+                </div>
+                <div class="active-alerts">
+                    <h5>Active Alerts</h5>
+                    <div class="alerts-list">
+                        ${this.rateAlerts.filter(alert => alert.active).map(alert => `
+                            <div class="alert-item">
+                                <span>${alert.fromCurrency}/${alert.toCurrency} ${alert.alertType} ${alert.targetRate}</span>
+                                <button class="delete-alert" onclick="converter.deleteAlert(${alert.id})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `);
+        this.showModal(modal);
+    }
+
+    createAlertFromModal(fromCurrency, toCurrency) {
+        const alertType = document.getElementById('alertType').value;
+        const targetRate = parseFloat(document.getElementById('targetRate').value);
+
+        if (!targetRate || targetRate <= 0) {
+            this.showError('Please enter a valid target rate');
+            return;
+        }
+
+        this.createRateAlert(fromCurrency, toCurrency, targetRate, alertType);
+        document.querySelector('.modal-overlay').remove();
+    }
+
+    deleteAlert(alertId) {
+        const index = this.rateAlerts.findIndex(alert => alert.id === alertId);
+        if (index > -1) {
+            this.rateAlerts.splice(index, 1);
+            this.saveRateAlerts();
+            this.showSuccess('Rate alert deleted');
+            this.showRateAlertModal(); // Refresh modal
+        }
+    }
+
+    // Currency News Integration
+    async loadCurrencyNews() {
+        try {
+            // Simulate news API call (in production, use real news API)
+            const mockNews = [
+                {
+                    title: "USD Strengthens Against Major Currencies",
+                    summary: "The US dollar showed significant gains today amid better-than-expected economic data releases and Federal Reserve comments.",
+                    source: "Financial Times",
+                    timestamp: new Date().toISOString(),
+                    currencies: ["USD", "EUR", "GBP"],
+                    url: "#"
+                },
+                {
+                    title: "European Central Bank Holds Interest Rates Steady",
+                    summary: "ECB maintains current interest rates as inflation concerns persist across the Eurozone, market analysts predict possible future cuts.",
+                    source: "Reuters",
+                    timestamp: new Date(Date.now() - 3600000).toISOString(),
+                    currencies: ["EUR"],
+                    url: "#"
+                },
+                {
+                    title: "Asian Markets React to Currency Fluctuations",
+                    summary: "Markets across Asia show mixed reactions to recent currency movements, with investors closely watching central bank policies.",
+                    source: "Bloomberg",
+                    timestamp: new Date(Date.now() - 7200000).toISOString(),
+                    currencies: ["JPY", "CNY", "KRW"],
+                    url: "#"
+                },
+                {
+                    title: "Cryptocurrency Impact on Traditional Forex Markets",
+                    summary: "Growing cryptocurrency adoption is creating new dynamics in traditional forex markets, according to recent analysis.",
+                    source: "CoinDesk",
+                    timestamp: new Date(Date.now() - 10800000).toISOString(),
+                    currencies: ["BTC", "ETH"],
+                    url: "#"
+                }
+            ];
+
+            this.newsArticles = mockNews;
+            this.displayNews();
+            this.trackEvent('news_loaded', { articles: mockNews.length });
+
+        } catch (error) {
+            console.error('Failed to load currency news:', error);
+        }
+    }
+
+    displayNews() {
+        const newsContainer = document.getElementById('newsContainer');
+        if (!newsContainer) return;
+
+        if (this.newsArticles.length === 0) {
+            newsContainer.innerHTML = `
+                <div class="news-section">
+                    <h3>📰 Currency News</h3>
+                    <p class="no-news">No news available at the moment.</p>
+                </div>
+            `;
+            return;
+        }
+
+        newsContainer.innerHTML = `
+            <div class="news-section">
+                <h3>📰 Currency News</h3>
+                <div class="news-list">
+                    ${this.newsArticles.map(article => `
+                        <div class="news-item">
+                            <div class="news-header">
+                                <h4>${article.title}</h4>
+                                <span class="news-source">${article.source}</span>
+                            </div>
+                            <p class="news-summary">${article.summary}</p>
+                            <div class="news-footer">
+                                <span class="news-time">${this.formatTime(article.timestamp)}</span>
+                                <div class="news-currencies">
+                                    ${article.currencies.map(curr => `<span class="currency-tag">${curr}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Export Functionality
+    exportConversionHistory() {
+        if (this.recentConversions.length === 0) {
+            this.showError('No conversion history to export');
+            return;
+        }
+
+        const csvContent = this.generateConversionHistoryCSV(this.recentConversions);
+        this.downloadFile(csvContent, 'currency-conversion-history.csv', 'text/csv');
+        this.showSuccess('Conversion history exported successfully');
+        this.playSound('export');
+        this.trackEvent('history_exported', { conversions: this.recentConversions.length });
+    }
+
+    exportMultiCurrencyResults(results, amount, fromCurrency) {
+        const exportData = results.map(result => ({
+            'From Currency': fromCurrency,
+            'From Amount': amount,
+            'To Currency': result.currency,
+            'To Amount': result.amount,
+            'Exchange Rate': result.rate,
+            'Currency Name': result.name,
+            'Export Date': new Date().toISOString()
+        }));
+
+        const csvContent = this.generateCSV(exportData);
+        this.downloadFile(csvContent, 'multi-currency-conversion.csv', 'text/csv');
+        this.showSuccess('Multi-currency results exported successfully');
+        this.playSound('export');
+        this.trackEvent('multi_currency_exported', { results: results.length });
+    }
+
+    exportHistoricalData(historicalData, fromCurrency, toCurrency) {
+        const exportData = historicalData.map(data => ({
+            'Date': data.date,
+            'Formatted Date': data.formattedDate,
+            'Exchange Rate': data.rate,
+            'From Currency': fromCurrency,
+            'To Currency': toCurrency
+        }));
+
+        const csvContent = this.generateCSV(exportData);
+        this.downloadFile(csvContent, `historical-rates-${fromCurrency}-${toCurrency}.csv`, 'text/csv');
+        this.showSuccess('Historical data exported successfully');
+        this.playSound('export');
+        this.trackEvent('historical_data_exported', { fromCurrency, toCurrency, days: historicalData.length });
+    }
+
+    generateConversionHistoryCSV(conversions) {
+        const exportData = conversions.map(conv => ({
+            'Date': new Date(conv.timestamp).toLocaleString(),
+            'Amount': conv.amount,
+            'From Currency': conv.fromCurrency,
+            'To Amount': conv.convertedAmount,
+            'To Currency': conv.toCurrency,
+            'Exchange Rate': conv.rate,
+            'From Currency Name': this.currencyNames[conv.fromCurrency],
+            'To Currency Name': this.currencyNames[conv.toCurrency]
+        }));
+
+        return this.generateCSV(exportData);
+    }
+
+    generateCSV(data) {
+        if (data.length === 0) return '';
+
+        const headers = Object.keys(data[0]);
+        const csvHeaders = headers.join(',');
+        const csvRows = data.map(row =>
+            headers.map(header => `"${row[header]}"`).join(',')
+        );
+
+        return csvHeaders + '\n' + csvRows.join('\n');
+    }
+
+    downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    }
+
+    // Currency Comparison
+    compareCurrencies(results) {
+        const modal = this.createModal('Currency Comparison', `
+            <div class="comparison-container">
+                <div class="comparison-chart">
+                    ${results.map(result => {
+                        const maxValue = Math.max(...results.map(r => parseFloat(r.amount)));
+                        const percentage = (parseFloat(result.amount) / maxValue) * 100;
+                        return `
+                            <div class="comparison-item">
+                                <div class="comparison-label">
+                                    <span class="currency-flag">${this.getCurrencyFlag(result.currency)}</span>
+                                    <span class="currency-name">${result.currency} - ${result.name}</span>
+                                </div>
+                                <div class="comparison-bar">
+                                    <div class="comparison-fill" style="width: ${percentage}%"></div>
+                                    <span class="comparison-value">${this.formatNumber(result.amount)}</span>
+                                </div>
+                                <div class="comparison-rate">Rate: ${result.rate.toFixed(4)}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="comparison-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Highest Value:</span>
+                        <span class="stat-value">${this.formatNumber(Math.max(...results.map(r => parseFloat(r.amount))))}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Lowest Value:</span>
+                        <span class="stat-value">${this.formatNumber(Math.min(...results.map(r => parseFloat(r.amount))))}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average Value:</span>
+                        <span class="stat-value">${this.formatNumber(results.reduce((sum, r) => sum + parseFloat(r.amount), 0) / results.length)}</span>
+                    </div>
+                </div>
+                <div class="comparison-actions">
+                    <button onclick="converter.exportComparisonData(${JSON.stringify(results)})">
+                        📥 Export Comparison
+                    </button>
+                    <button onclick="converter.createComparisonChart(${JSON.stringify(results)})">
+                        📊 Generate Chart
+                    </button>
+                </div>
+            </div>
+        `);
+        this.showModal(modal);
+        this.trackEvent('currency_comparison_viewed', { currencies: results.length });
+    }
+
+    exportComparisonData(results) {
+        const exportData = results.map(result => ({
+            'Currency': result.currency,
+            'Currency Name': result.name,
+            'Amount': result.amount,
+            'Exchange Rate': result.rate,
+            'Percentage of Total': ((parseFloat(result.amount) / results.reduce((sum, r) => sum + parseFloat(r.amount), 0)) * 100).toFixed(2) + '%'
+        }));
+
+        const csvContent = this.generateCSV(exportData);
+        this.downloadFile(csvContent, 'currency-comparison.csv', 'text/csv');
+        this.showSuccess('Comparison data exported successfully');
+        this.playSound('export');
+    }
+
+    // Settings Modal
+    showSettingsModal() {
+        const modal = this.createModal('Settings', `
+            <div class="settings-container">
+                <div class="setting-group">
+                    <h4>General Settings</h4>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="soundEnabled" ${this.settings.soundEnabled ? 'checked' : ''}>
+                            Enable Sound Effects
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="hapticEnabled" ${this.settings.hapticEnabled ? 'checked' : ''}>
+                            Enable Haptic Feedback
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="pullToRefreshEnabled" ${this.settings.pullToRefreshEnabled ? 'checked' : ''}>
+                            Enable Pull to Refresh
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="notificationsEnabled" ${this.settings.notificationsEnabled ? 'checked' : ''}>
+                            Enable Notifications
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h4>Data Settings</h4>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="autoRefresh" ${this.settings.autoRefresh ? 'checked' : ''}>
+                            Auto-refresh Rates
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label for="refreshInterval">Refresh Interval (minutes):</label>
+                        <select id="refreshInterval" class="form-select">
+                            <option value="1" ${this.settings.refreshInterval === 1 ? 'selected' : ''}>1 minute</option>
+                            <option value="5" ${this.settings.refreshInterval === 5 ? 'selected' : ''}>5 minutes</option>
+                            <option value="15" ${this.settings.refreshInterval === 15 ? 'selected' : ''}>15 minutes</option>
+                            <option value="30" ${this.settings.refreshInterval === 30 ? 'selected' : ''}>30 minutes</option>
+                            <option value="60" ${this.settings.refreshInterval === 60 ? 'selected' : ''}>1 hour</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h4>UI Settings</h4>
+                    <div class="setting-item">
+                        <label for="defaultAmount">Default Amount:</label>
+                        <input type="number" id="defaultAmount" class="form-input" value="${this.settings.defaultAmount}" min="1">
+                    </div>
+                </div>
+
+                <div class="setting-actions">
+                    <button class="btn-primary" onclick="converter.saveSettingsFromModal()">Save Settings</button>
+                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                    <button class="btn-danger" onclick="converter.clearAllData()">Clear All Data</button>
+                </div>
+            </div>
+        `);
+        this.showModal(modal);
+    }
+
+    saveSettingsFromModal() {
+        const newSettings = {
+            soundEnabled: document.getElementById('soundEnabled').checked,
+            hapticEnabled: document.getElementById('hapticEnabled').checked,
+            pullToRefreshEnabled: document.getElementById('pullToRefreshEnabled').checked,
+            notificationsEnabled: document.getElementById('notificationsEnabled').checked,
+            autoRefresh: document.getElementById('autoRefresh').checked,
+            refreshInterval: parseInt(document.getElementById('refreshInterval').value),
+            defaultAmount: parseInt(document.getElementById('defaultAmount').value)
+        };
+
+        this.updateSettings(newSettings);
+        document.querySelector('.modal-overlay').remove();
+        this.showSuccess('Settings saved successfully');
+        this.playSound('success');
+        this.trackEvent('settings_updated', newSettings);
+    }
+
+    clearAllData() {
+        if (confirm('Are you sure you want to clear all data? This will remove your favorites, history, and settings.')) {
+            localStorage.clear();
+            sessionStorage.clear();
+            location.reload();
+        }
+    }
+
+    // Sound Effects
+    initAudioContext() {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    playSound(type) {
+        if (!this.soundEnabled || !this.settings.soundEnabled) return;
+
+        this.initAudioContext();
+        const context = this.audioContext;
+        const oscillator = context.createOscillator();
+        const gainNode = context.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(context.destination);
+
+        switch (type) {
+            case 'click':
+                oscillator.frequency.value = 800;
+                gainNode.gain.value = 0.1;
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.05);
+                break;
+            case 'success':
+                oscillator.frequency.value = 600;
+                gainNode.gain.value = 0.15;
+                oscillator.frequency.exponentialRampToValueAtTime(1200, context.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.15);
+                break;
+            case 'error':
+                oscillator.frequency.value = 300;
+                gainNode.gain.value = 0.2;
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.2);
+                break;
+            case 'alert':
+                oscillator.frequency.value = 1000;
+                gainNode.gain.value = 0.2;
+                oscillator.frequency.exponentialRampToValueAtTime(1500, context.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.2);
+                break;
+            case 'export':
+                oscillator.frequency.value = 400;
+                gainNode.gain.value = 0.15;
+                oscillator.frequency.exponentialRampToValueAtTime(800, context.currentTime + 0.15);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.2);
+                break;
+            case 'toggle':
+                oscillator.frequency.value = 500;
+                gainNode.gain.value = 0.1;
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.1);
+                break;
+            case 'operator':
+                oscillator.frequency.value = 700;
+                gainNode.gain.value = 0.08;
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.08);
+                break;
+            case 'equals':
+                oscillator.frequency.value = 900;
+                gainNode.gain.value = 0.12;
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.12);
+                break;
+            case 'clear':
+                oscillator.frequency.value = 400;
+                gainNode.gain.value = 0.1;
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.1);
+                break;
+            case 'delete':
+                oscillator.frequency.value = 600;
+                gainNode.gain.value = 0.08;
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.06);
+                break;
+            case 'info':
+                oscillator.frequency.value = 650;
+                gainNode.gain.value = 0.1;
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.15);
+                break;
+        }
+    }
+
+    // Haptic Feedback
+    triggerHaptic(type) {
+        if (!this.hapticEnabled || !this.settings.hapticEnabled) return;
+
+        if ('vibrate' in navigator) {
+            switch (type) {
+                case 'click':
+                    navigator.vibrate(10);
+                    break;
+                case 'success':
+                    navigator.vibrate([10, 50, 10]);
+                    break;
+                case 'error':
+                    navigator.vibrate([100, 50, 100]);
+                    break;
+                case 'notification':
+                    navigator.vibrate([200, 100, 200]);
+                    break;
+                default:
+                    navigator.vibrate(50);
+            }
+        }
+    }
+
+    // Modal System
+    createModal(title, content) {
+        return `
+            <div class="modal-overlay" onclick="if(event.target === this) this.remove()">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3>${title}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        ${content}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    showModal(modalHTML) {
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        this.playSound('info');
+    }
+
+    // Notification System
+    showNotification(message, type = 'info') {
+        if ('Notification' in window && Notification.permission === 'granted' && this.settings.notificationsEnabled) {
+            new Notification('Currency Converter Pro', {
+                body: message,
+                icon: '/icon-192x192.png',
+                badge: '/icon-192x192.png',
+                tag: 'currency-converter'
+            });
+        }
+    }
+
+    // Pull to Refresh
+    initPullToRefresh() {
+        if (!this.pullToRefreshEnabled || !this.settings.pullToRefreshEnabled) return;
+
+        let startY = 0;
+        let isPulling = false;
+        let pullStarted = false;
+
+        document.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].clientY;
+                isPulling = true;
+                pullStarted = false;
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isPulling) return;
+
+            const currentY = e.touches[0].clientY;
+            const pullDistance = currentY - startY;
+
+            if (pullDistance > 50 && !pullStarted) {
+                pullStarted = true;
+                this.showRefreshIndicator();
+            }
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (!isPulling || !pullStarted) return;
+
+            const currentY = e.changedTouches[0].clientY;
+            const pullDistance = currentY - startY;
+
+            if (pullDistance > 100) {
+                this.refreshData();
+            }
+
+            isPulling = false;
+            pullStarted = false;
+            this.hideRefreshIndicator();
+        });
+    }
+
+    showRefreshIndicator() {
+        let indicator = document.getElementById('refreshIndicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'refreshIndicator';
+            indicator.innerHTML = '↻ Refreshing...';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--primary);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 20px;
+                z-index: 9999;
+                animation: spin 1s linear infinite;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            document.body.appendChild(indicator);
+        }
+    }
+
+    hideRefreshIndicator() {
+        const indicator = document.getElementById('refreshIndicator');
+        if (indicator) indicator.remove();
+    }
+
+    async refreshData() {
+        await this.loadCurrencies();
+        this.checkRateAlerts();
+        this.loadCurrencyNews();
+        this.showSuccess('Data refreshed successfully');
+        this.playSound('success');
+        this.trackEvent('data_refreshed');
+    }
+
+    // Analytics
+    trackEvent(event, data = {}) {
+        const eventRecord = {
+            event,
+            data,
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent
+        };
+
+        this.analytics.events.push(eventRecord);
+        if (this.analytics.events.length > 1000) {
+            this.analytics.events = this.analytics.events.slice(-500);
+        }
+
+        this.analytics.conversions = this.recentConversions.length;
+        this.saveAnalytics();
+
+        // In production, send to analytics service
+        console.log('Analytics Event:', eventRecord);
+    }
+
+    // Storage functions for advanced features
+    loadRateAlerts() {
+        const saved = localStorage.getItem('currencyConverter_rateAlerts');
+        return saved ? JSON.parse(saved) : [];
+    }
+
+    saveRateAlerts() {
+        localStorage.setItem('currencyConverter_rateAlerts', JSON.stringify(this.rateAlerts));
+    }
+
+    loadSettings() {
+        const saved = localStorage.getItem('currencyConverter_settings');
+        return saved ? JSON.parse(saved) : {
+            soundEnabled: true,
+            hapticEnabled: true,
+            pullToRefreshEnabled: true,
+            theme: 'light',
+            autoRefresh: false,
+            refreshInterval: 5,
+            notificationsEnabled: true,
+            defaultAmount: 100
+        };
+    }
+
+    loadAnalytics() {
+        const saved = localStorage.getItem('currencyConverter_analytics');
+        return saved ? JSON.parse(saved) : { events: [], conversions: 0 };
+    }
+
+    saveAnalytics() {
+        localStorage.setItem('currencyConverter_analytics', JSON.stringify(this.analytics));
+    }
+
+    // Utility functions
+    getCurrencyFlag(currency) {
+        const flags = {
+            'USD': '🇺🇸', 'EUR': '🇪🇺', 'GBP': '🇬🇧', 'JPY': '🇯🇵', 'AUD': '🇦🇺', 'CAD': '🇨🇦',
+            'CHF': '🇨🇭', 'CNY': '🇨🇳', 'INR': '🇮🇳', 'BRL': '🇧🇷', 'MXN': '🇲🇽', 'RUB': '🇷🇺',
+            'KRW': '🇰🇷', 'ZAR': '🇿🇦', 'NZD': '🇳🇿', 'SGD': '🇸🇬', 'HKD': '🇭🇰', 'NOK': '🇳🇴',
+            'SEK': '🇸🇪', 'DKK': '🇩🇰', 'PLN': '🇵🇱', 'THB': '🇹🇭', 'IDR': '🇮🇩', 'MYR': '🇲🇾',
+            'ARS': '🇦🇷', 'CLP': '🇨🇱', 'COP': '🇨🇴', 'PEN': '🇵🇪', 'UYU': '🇺🇾', 'VES': '🇻🇪'
+        };
+        return flags[currency] || '💱';
+    }
+
+    formatTime(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+
+        if (diffMins < 60) return `${diffMins} min ago`;
+        if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hours ago`;
+        return date.toLocaleDateString();
+    }
+
+    async getCurrentRate(fromCurrency, toCurrency) {
+        if (fromCurrency === toCurrency) return 1;
+        const data = await this.fetchWithCache(`${this.apiUrl}/${fromCurrency}`);
+        return data.rates[toCurrency] || 1;
+    }
+
+    // Request notification permission
+    async requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                this.showSuccess('Notifications enabled!');
+                this.trackEvent('notifications_enabled');
+            }
+        }
+    }
+
+    // Additional utility functions
+    createRateAlertFromHistory(fromCurrency, toCurrency, currentRate) {
+        document.querySelector('.modal-overlay').remove();
+        this.showRateAlertModal();
+        // Pre-fill the form with current rate
+        setTimeout(() => {
+            const targetRateInput = document.getElementById('targetRate');
+            if (targetRateInput) {
+                targetRateInput.value = currentRate.toFixed(4);
+            }
+        }, 100);
     }
 }
 
