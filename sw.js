@@ -115,6 +115,7 @@ self.addEventListener('fetch', (event) => {
 // Handle API requests with network-first strategy
 async function handleApiRequest(request) {
   const url = new URL(request.url);
+  const cache = await caches.open(RUNTIME_CACHE);
   const cacheKey = `${url.origin}${url.pathname}${url.search}`;
   let cachedResponse = await cache.match(cacheKey);
 
