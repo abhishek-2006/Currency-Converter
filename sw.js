@@ -1,6 +1,7 @@
 // Currency Converter Pro Service Worker
-const CACHE_NAME = 'currency-converter-pro-v1';
-const RUNTIME_CACHE = 'currency-converter-runtime-v1';
+const CACHE_NAME = 'currency-converter-pro-v2';
+const RUNTIME_CACHE = 'currency-converter-runtime-v2';
+const API_CACHE_EXPIRY_DAYS = 1;
 
 // Files to cache for offline functionality
 const STATIC_CACHE_FILES = [
@@ -13,6 +14,19 @@ const STATIC_CACHE_FILES = [
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'
 ];
 
+const ASSET_PATHS = [
+    // Include all your static assets that are NOT in the root
+    '/assets/favicon.ico',
+    '/assets/icon-32x32.png',
+    '/assets/icon-16x16.png',
+    '/assets/icon-180x180.png',
+    '/assets/icon-192x192.png',
+    '/assets/icon-144x144.png',
+    '/assets/icon-128x128.png',
+    '/assets/icon-72x72.png',
+    '/assets/icon-96x96.png',
+];
+
 // API URLs that should be cached
 const API_CACHE_PATTERNS = [
   /https:\/\/open\.er-api\.com\/v6\/latest\/.*/
@@ -20,16 +34,16 @@ const API_CACHE_PATTERNS = [
 
 // Install event - cache static files
 self.addEventListener('install', (event) => {
-  console.log('SW: Installing service worker');
+  console.log('SW: Installing service worker v2');
 
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('SW: Caching static files');
+        console.log('SW: Caching static files, including PWA icons.');
         return cache.addAll(STATIC_CACHE_FILES);
       })
       .then(() => {
-        console.log('SW: Static files cached successfully');
+        console.log('SW: Static files cached successfully (v2)');
         return self.skipWaiting();
       })
       .catch((error) => {
@@ -40,7 +54,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('SW: Activating service worker');
+  console.log('SW: Activating service worker v2');
 
   event.waitUntil(
     caches.keys()
@@ -102,50 +116,66 @@ self.addEventListener('fetch', (event) => {
 async function handleApiRequest(request) {
   const url = new URL(request.url);
   const cacheKey = `${url.origin}${url.pathname}${url.search}`;
+  let cachedResponse = await cache.match(cacheKey);
 
-  try {
-    // Try network first
-    const networkResponse = await fetch(request);
-
-    if (networkResponse.ok) {
-      // Cache the successful response
-      const cache = await caches.open(RUNTIME_CACHE);
-      const responseToCache = networkResponse.clone();
-      await cache.put(cacheKey, responseToCache);
-
-      console.log('SW: API response cached:', cacheKey);
-      return networkResponse;
-    }
-
-    throw new Error('Network response not ok');
-  } catch (error) {
-    console.log('SW: Network failed, trying cache for:', cacheKey);
-
-    // Fallback to cache
-    const cachedResponse = await caches.match(cacheKey);
-
-    if (cachedResponse) {
-      console.log('SW: Returning cached response for:', cacheKey);
-      return cachedResponse;
-    }
-
-    // If no cached response, return offline error
-    console.log('SW: No cached response available, returning offline page');
-    return new Response(
-      JSON.stringify({
-        error: 'Offline',
-        message: 'No internet connection and no cached data available'
-      }),
-      {
-        status: 503,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
+  if (cachedResponse) {
+        const lastCached = new Date(cachedResponse.headers.get('sw-cached-date'));
+        const now = new Date();
+        const expiryTime = API_CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000; // 1 day in ms
+        
+        if (now.getTime() - lastCached.getTime() > expiryTime) {
+            console.log('SW: API cache expired, fetching fresh data.');
+            cachedResponse = null; // Treat as expired, force network
         }
-      }
-    );
+    }
+  
+  try {
+        // Try network first
+        const networkResponse = await fetch(request);
+
+        if (networkResponse.ok) {
+            // Cache the successful response with a timestamp
+            const responseToCache = networkResponse.clone();
+            const headers = new Headers(responseToCache.headers);
+            headers.set('sw-cached-date', new Date().toISOString());
+            
+            await cache.put(cacheKey, new Response(responseToCache.body, {
+                status: responseToCache.status,
+                statusText: responseToCache.statusText,
+                headers: headers
+            }));
+
+            console.log('SW: API response updated and cached:', cacheKey);
+            return networkResponse;
+        }
+
+        // If network fails, return the (possibly stale) cached response
+        if (cachedResponse) {
+            console.log('SW: Network failed, returning stale cache for:', cacheKey);
+            return cachedResponse;
+        }
+        
+        throw new Error('Network response not ok and no cache available');
+    } catch (error) {
+        console.log('SW: Total failure, attempting final cache match:', cacheKey);
+        // Fallback to cache if network failed entirely
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
+        // Original offline error response
+        return new Response(
+            JSON.stringify({
+                error: 'Offline',
+                message: 'No internet connection and no cached data available'
+            }),
+            {
+                status: 503,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' }
+            }
+        );
+    }
   }
-}
 
 // Handle static assets with cache-first strategy
 async function handleStaticRequest(request) {

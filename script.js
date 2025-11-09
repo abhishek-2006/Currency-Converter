@@ -485,7 +485,7 @@ class CurrencyConverter {
 
     loadFavorites() {
         const saved = localStorage.getItem('currencyConverter_favorites');
-        return saved ? JSON.parse(saved) : ['USD', 'EUR', 'GBP', 'JPY'];
+        return saved ? JSON.parse(saved) : ['USD', 'EUR', 'INR', 'JPY'];
     }
 
     saveConversion(amount, fromCurrency, convertedAmount, toCurrency, rate) {
@@ -1267,7 +1267,6 @@ class CurrencyConverter {
         if (this.newsArticles.length === 0) {
             newsContainer.innerHTML = `
                 <div class="news-section">
-                    <h3>📰 Currency News</h3>
                     <p class="no-news">No news available at the moment.</p>
                 </div>
             `;
@@ -1276,7 +1275,6 @@ class CurrencyConverter {
 
         newsContainer.innerHTML = `
             <div class="news-section">
-                <h3>📰 Currency News</h3>
                 <div class="news-list">
                     ${this.newsArticles.map(article => `
                         <div class="news-item">

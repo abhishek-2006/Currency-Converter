@@ -15,14 +15,21 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/icon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32x32.png">
+
+    <link rel="icon" type="image/png" sizes="144x144" href="assets/icon-144x144.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-384x384.png">
+    
     <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180x180.png">
+    
     <link rel="manifest" href="./manifest.json">
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#6366f1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Currency Converter">
 
@@ -76,13 +83,11 @@
 
         <!-- Main content area -->
         <main class="app-container" id="main-content">
-            <!-- Left Sidebar - Favorites -->
             <aside class="sidebar glass-card" role="complementary" aria-label="Favorite currencies">
                 <div class="sidebar-card">
                     <h2 class="sidebar-title">⭐ Quick Access</h2>
                     <div class="favorites-bar" id="favoritesBar" role="group" aria-label="Favorite currencies">
-                        <!-- Favorites will be populated by JavaScript -->
-                    </div>
+                        </div>
                 </div>
 
                 <div class="sidebar-card">
@@ -96,13 +101,11 @@
                 </div>
             </aside>
 
-            <!-- Center - Main Converter -->
             <section class="converter-section" role="main">
                 <div class="converter-card glass-card">
                     <h2 class="visually-hidden">Currency Converter</h2>
 
                     <form id="converterForm" novalidate>
-                        <!-- Amount Input Section -->
                         <div class="form-group">
                             <label for="amount" class="form-label">Amount</label>
                             <input
@@ -120,7 +123,6 @@
                             </small>
                         </div>
 
-                        <!-- Amount Presets -->
                         <div class="amount-presets" role="group" aria-label="Quick amount buttons">
                             <button type="button" class="preset-button" data-amount="10">$10</button>
                             <button type="button" class="preset-button" data-amount="50">$50</button>
@@ -129,14 +131,12 @@
                             <button type="button" class="preset-button" data-amount="1000">$1,000</button>
                         </div>
 
-                        <!-- From Currency Section -->
                         <div class="form-group">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label for="fromCurrencySearch" class="form-label mb-0">From Currency</label>
                                 <small class="text-muted">Start typing to search</small>
                             </div>
 
-                            <!-- Search input for from currency -->
                             <input
                                 type="search"
                                 id="fromCurrencySearch"
@@ -146,7 +146,6 @@
                                 aria-label="Search from currency"
                             >
 
-                            <!-- From currency dropdown -->
                             <div class="currency-dropdown">
                                 <select
                                     id="fromCurrency"
@@ -159,7 +158,6 @@
                             </div>
                         </div>
 
-                        <!-- Swap Button -->
                         <div class="swap-section">
                             <button
                                 type="button"
@@ -172,14 +170,12 @@
                             </button>
                         </div>
 
-                        <!-- To Currency Section -->
                         <div class="form-group">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label for="toCurrencySearch" class="form-label mb-0">To Currency</label>
                                 <small class="text-muted">Start typing to search</small>
                             </div>
 
-                            <!-- Search input for to currency -->
                             <input
                                 type="search"
                                 id="toCurrencySearch"
@@ -189,7 +185,6 @@
                                 aria-label="Search to currency"
                             >
 
-                            <!-- To currency dropdown -->
                             <div class="currency-dropdown">
                                 <select
                                     id="toCurrency"
@@ -202,7 +197,6 @@
                             </div>
                         </div>
 
-                        <!-- Convert Button -->
                         <div class="form-group">
                             <button
                                 type="button"
@@ -215,15 +209,13 @@
                         </div>
                     </form>
 
-                    <!-- Result Display -->
                     <div class="result-container" id="result" role="region" aria-live="polite" aria-label="Conversion result">
-                        <!-- Results will be populated by JavaScript -->
-                    </div>
+                        </div>
                 </div>
             </section>
 
-            <!-- Right Sidebar - History -->
-            <aside class="sidebar glass-card" role="complementary" aria-label="Conversion history">
+            <aside class="sidebar glass-card" role="complementary" aria-label="Conversion history and advanced features">
+                
                 <div class="sidebar-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <h2 class="sidebar-title">📊 Recent Conversions</h2>
@@ -237,62 +229,10 @@
                     </div>
 
                     <div class="history-container" id="historyContainer">
-                        <div class="history-list" id="historyList" role="list">
-                            <!-- History items will be populated by JavaScript -->
-                        </div>
-
-                        <div class="empty-history text-center py-4" id="emptyHistory">
-                            <p class="text-muted">No recent conversions</p>
-                            <small class="text-muted">Your conversion history will appear here</small>
-                        </div>
+                        <div class="history-list" id="historyList" role="list"></div>
                     </div>
                 </div>
-
-                <!-- Rate Information -->
-                <div class="sidebar-card">
-                    <h3 class="sidebar-title">ℹ️ Rate Information</h3>
-                    <div class="rate-info">
-                        <p class="mb-2">
-                            <strong>Source:</strong> European Central Bank
-                        </p>
-                        <p class="mb-2">
-                            <strong>Update:</strong> Real-time rates
-                        </p>
-                        <p class="mb-0">
-                            <strong>Currencies:</strong> 150+ supported
-                        </p>
-                    </div>
-                </div>
-            </aside>
-        </main>
-
-            <!-- Right Sidebar - History -->
-            <aside class="sidebar glass-card" role="complementary" aria-label="Conversion history">
-                <div class="sidebar-card">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="sidebar-title">📊 Recent Conversions</h2>
-                        <button
-                            id="clearHistory"
-                            class="btn btn-sm btn-outline-danger"
-                            aria-label="Clear history"
-                        >
-                            Clear
-                        </button>
-                    </div>
-
-                    <div class="history-container" id="historyContainer">
-                        <div class="history-list" id="historyList" role="list">
-                            <!-- History items will be populated by JavaScript -->
-                        </div>
-
-                        <div class="empty-history text-center py-4" id="emptyHistory">
-                            <p class="text-muted">No recent conversions</p>
-                            <small class="text-muted">Your conversion history will appear here</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Advanced Features -->
+                
                 <div class="sidebar-card">
                     <h3 class="sidebar-title">🚀 Advanced Features</h3>
                     <div class="feature-buttons">
@@ -314,15 +254,12 @@
                     </div>
                 </div>
 
-                <!-- Currency News -->
                 <div class="sidebar-card">
                     <h3 class="sidebar-title">📰 Currency News</h3>
                     <div id="newsContainer">
-                        <!-- News will be populated by JavaScript -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Rate Information -->
                 <div class="sidebar-card">
                     <h3 class="sidebar-title">ℹ️ Rate Information</h3>
                     <div class="rate-info">
@@ -340,7 +277,6 @@
             </aside>
         </main>
 
-        <!-- Footer -->
         <footer class="app-footer" role="contentinfo">
             <div class="footer-container">
                 <div class="flex flex-col justify-center items-center text-center">
@@ -398,10 +334,11 @@
         if ('performance' in window) {
             window.addEventListener('load', () => {
                 const perfData = performance.getEntriesByType('navigation')[0];
-                const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
+                const calculatedTime = perfData.duration || (perfData.loadEventEnd - perfData.fetchStart);
+                const loadTime = Math.max(0, calculatedTime);
 
                 // Log performance data (in production, send to analytics)
-                console.log(`Page load time: ${loadTime}ms`);
+                console.log(`Page load time: ${loadTime.toFixed(2)}ms`);
             });
         }
 
