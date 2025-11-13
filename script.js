@@ -245,15 +245,6 @@ class CurrencyConverter {
             this.swapCurrencies();
         });
 
-        // Currency search
-        document.getElementById('fromCurrencySearch').addEventListener('input', (e) => {
-            this.searchCurrencies(e.target.value, 'fromCurrency');
-        });
-
-        document.getElementById('toCurrencySearch').addEventListener('input', (e) => {
-            this.searchCurrencies(e.target.value, 'toCurrency');
-        });
-
         // Currency changes (update favorites)
         document.getElementById('fromCurrency').addEventListener('change', (e) => {
             this.updateFavoriteButtons();
