@@ -13,7 +13,6 @@ class CurrencyConverter {
         this.selectedCurrencies = [];
         this.historicalRates = new Map();
         this.calculatorMode = false;
-        this.rateAlerts = this.loadRateAlerts();
         this.settings = this.loadSettings();
         this.analytics = this.loadAnalytics();
         this.soundEnabled = true;
@@ -38,7 +37,6 @@ class CurrencyConverter {
         this.setupEventListeners();
         this.setupKeyboardShortcuts();
         this.setupTheme();
-        this.updateFavoritesDisplay();
         this.updateHistoryDisplay();
     }
 
@@ -207,19 +205,6 @@ class CurrencyConverter {
         }, 300);
     }
 
-    // Toggle favorite currency
-    toggleFavorite(currency) {
-        const index = this.favoriteCurrencies.indexOf(currency);
-        if (index > -1) {
-            this.favoriteCurrencies.splice(index, 1);
-        } else {
-            this.favoriteCurrencies.push(currency);
-        }
-
-        this.saveFavorites();
-        this.updateFavoritesDisplay();
-    }
-
     // Quick select favorite currency
     selectFavoriteCurrency(currency, target) {
         const dropdown = document.getElementById(target);
@@ -243,15 +228,6 @@ class CurrencyConverter {
         // Swap button
         document.getElementById('swapButton').addEventListener('click', () => {
             this.swapCurrencies();
-        });
-
-        // Currency changes (update favorites)
-        document.getElementById('fromCurrency').addEventListener('change', (e) => {
-            this.updateFavoriteButtons();
-        });
-
-        document.getElementById('toCurrency').addEventListener('change', (e) => {
-            this.updateFavoriteButtons();
         });
 
         // Theme toggle
@@ -515,22 +491,6 @@ class CurrencyConverter {
         this.showSuccess('History cleared');
     }
 
-    // Update UI displays
-    updateFavoritesDisplay() {
-        const favoritesBar = document.getElementById('favoritesBar');
-        favoritesBar.innerHTML = '';
-
-        this.favoriteCurrencies.forEach(currency => {
-            const button = document.createElement('button');
-            button.className = 'favorite-btn';
-            button.textContent = currency;
-            button.addEventListener('click', () => {
-                this.selectFavoriteCurrency(currency, 'fromCurrency');
-            });
-            favoritesBar.appendChild(button);
-        });
-    }
-
     updateHistoryDisplay() {
         const historyContainer = document.getElementById('historyContainer');
         const historyList = document.getElementById('historyList');
@@ -566,30 +526,6 @@ class CurrencyConverter {
 
             historyList.appendChild(item);
         });
-    }
-
-    updateFavoriteButtons() {
-        const fromCurrency = document.getElementById('fromCurrency').value;
-        const toCurrency = document.getElementById('toCurrency').value;
-
-        // Update favorite indicators in dropdowns
-        this.updateFavoriteIndicator('fromCurrency', fromCurrency);
-        this.updateFavoriteIndicator('toCurrency', toCurrency);
-    }
-
-    updateFavoriteIndicator(dropdownId, currency) {
-        const dropdown = document.getElementById(dropdownId);
-        const option = dropdown.querySelector(`option[value="${currency}"]`);
-
-        // Remove existing indicators
-        dropdown.querySelectorAll('option').forEach(opt => {
-            opt.textContent = opt.textContent.replace(' ⭐', '');
-        });
-
-        // Add indicator for favorites
-        if (this.favoriteCurrencies.includes(currency) && option) {
-            option.textContent += ' ⭐';
-        }
     }
 
     // Reload conversion from history
@@ -667,11 +603,8 @@ class CurrencyConverter {
         });
 
         // Set defaults
-        fromCurrency.value = 'USD';
+        fromCurrency.value = 'INR';
         toCurrency.value = 'EUR';
-
-        // Update favorite indicators
-        this.updateFavoriteButtons();
 
         // Initialize advanced features
         this.initAdvancedFeatures();
@@ -681,7 +614,6 @@ class CurrencyConverter {
     initAdvancedFeatures() {
         this.initPullToRefresh();
         this.loadCurrencyNews();
-        this.checkRateAlerts();
         this.requestNotificationPermission();
 
         // Setup additional event listeners for advanced features
@@ -722,11 +654,6 @@ class CurrencyConverter {
         // Settings button
         document.getElementById('settingsButton')?.addEventListener('click', () => {
             this.showSettingsModal();
-        });
-
-        // Rate alerts
-        document.getElementById('rateAlertButton')?.addEventListener('click', () => {
-            this.showRateAlertModal();
         });
     }
 
@@ -893,314 +820,10 @@ class CurrencyConverter {
                     <button class="export-chart" onclick="converter.exportHistoricalData(${JSON.stringify(historicalData)}, '${fromCurrency}', '${toCurrency}')">
                         📥 Export Data
                     </button>
-                    <button class="set-alert" onclick="converter.createRateAlertFromHistory('${fromCurrency}', '${toCurrency}', ${historicalData[historicalData.length - 1].rate})">
-                        🔔 Set Rate Alert
-                    </button>
                 </div>
             </div>
         `);
         this.showModal(modal);
-    }
-
-    // Currency Calculator Mode
-    enableCalculatorMode() {
-        this.calculatorMode = true;
-        this.trackEvent('calculator_mode_enabled');
-
-        const calculatorHTML = `
-            <div class="calculator-mode">
-                <div class="calc-display">
-                    <div class="calc-expression" id="calcExpression"></div>
-                    <div class="calc-result" id="calcResult">0</div>
-                </div>
-                <div class="calc-buttons">
-                    <div class="calc-row">
-                        <button class="calc-btn calc-clear" onclick="converter.calcClear()">C</button>
-                        <button class="calc-btn calc-operator" onclick="converter.calcOperator('/')">÷</button>
-                        <button class="calc-btn calc-operator" onclick="converter.calcOperator('*')">×</button>
-                        <button class="calc-btn calc-delete" onclick="converter.calcDelete()">←</button>
-                    </div>
-                    <div class="calc-row">
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('7')">7</button>
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('8')">8</button>
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('9')">9</button>
-                        <button class="calc-btn calc-operator" onclick="converter.calcOperator('-')">-</button>
-                    </div>
-                    <div class="calc-row">
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('4')">4</button>
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('5')">5</button>
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('6')">6</button>
-                        <button class="calc-btn calc-operator" onclick="converter.calcOperator('+')">+</button>
-                    </div>
-                    <div class="calc-row">
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('1')">1</button>
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('2')">2</button>
-                        <button class="calc-btn calc-number" onclick="converter.calcNumber('3')">3</button>
-                        <button class="calc-btn calc-equals" onclick="converter.calcEquals()">=</button>
-                    </div>
-                    <div class="calc-row">
-                        <button class="calc-btn calc-number calc-zero" onclick="converter.calcNumber('0')">0</button>
-                        <button class="calc-btn calc-decimal" onclick="converter.calcDecimal()">.</button>
-                        <button class="calc-btn calc-convert" onclick="converter.calcConvert()">Convert</button>
-                    </div>
-                </div>
-                <div class="calc-mode-toggle">
-                    <button onclick="converter.disableCalculatorMode()">Back to Normal</button>
-                </div>
-            </div>
-        `;
-
-        const amountInput = document.getElementById('amount');
-        amountInput.style.display = 'none';
-        amountInput.insertAdjacentHTML('afterend', calculatorHTML);
-        this.showSuccess('Calculator mode enabled');
-        this.playSound('toggle');
-    }
-
-    disableCalculatorMode() {
-        this.calculatorMode = false;
-        this.trackEvent('calculator_mode_disabled');
-
-        const calculator = document.querySelector('.calculator-mode');
-        const amountInput = document.getElementById('amount');
-        if (calculator) calculator.remove();
-        amountInput.style.display = 'block';
-        this.playSound('toggle');
-    }
-
-    // Calculator functions
-    calcDisplay = '0';
-    calcPreviousValue = '';
-    calcOperation = '';
-    calcShouldResetDisplay = false;
-
-    calcNumber(num) {
-        if (this.calcShouldResetDisplay || this.calcDisplay === '0') {
-            this.calcDisplay = num;
-            this.calcShouldResetDisplay = false;
-        } else {
-            this.calcDisplay += num;
-        }
-        this.updateCalcDisplay();
-        this.playSound('click');
-        this.triggerHaptic('click');
-    }
-
-    calcDecimal() {
-        if (this.calcShouldResetDisplay) {
-            this.calcDisplay = '0.';
-            this.calcShouldResetDisplay = false;
-        } else if (this.calcDisplay.indexOf('.') === -1) {
-            this.calcDisplay += '.';
-        }
-        this.updateCalcDisplay();
-        this.playSound('click');
-    }
-
-    calcOperator(op) {
-        if (this.calcOperation !== '') {
-            this.calcEquals();
-        }
-        this.calcPreviousValue = this.calcDisplay;
-        this.calcOperation = op;
-        this.calcShouldResetDisplay = true;
-        this.updateCalcExpression();
-        this.playSound('operator');
-    }
-
-    calcEquals() {
-        if (this.calcOperation === '' || this.calcPreviousValue === '') return;
-
-        const prev = parseFloat(this.calcPreviousValue);
-        const current = parseFloat(this.calcDisplay);
-        let result;
-
-        switch (this.calcOperation) {
-            case '+': result = prev + current; break;
-            case '-': result = prev - current; break;
-            case '*': result = prev * current; break;
-            case '/': result = current !== 0 ? prev / current : 0; break;
-        }
-
-        this.calcDisplay = result.toString();
-        this.calcOperation = '';
-        this.calcPreviousValue = '';
-        this.calcShouldResetDisplay = true;
-        this.updateCalcDisplay();
-        this.updateCalcExpression();
-        this.playSound('equals');
-        this.triggerHaptic('success');
-    }
-
-    calcClear() {
-        this.calcDisplay = '0';
-        this.calcPreviousValue = '';
-        this.calcOperation = '';
-        this.updateCalcDisplay();
-        this.updateCalcExpression();
-        this.playSound('clear');
-    }
-
-    calcDelete() {
-        if (this.calcDisplay.length > 1) {
-            this.calcDisplay = this.calcDisplay.slice(0, -1);
-        } else {
-            this.calcDisplay = '0';
-        }
-        this.updateCalcDisplay();
-        this.playSound('delete');
-    }
-
-    calcConvert() {
-        const amount = parseFloat(this.calcDisplay);
-        document.getElementById('amount').value = amount;
-        this.disableCalculatorMode();
-        this.convertCurrency();
-    }
-
-    updateCalcDisplay() {
-        const resultElement = document.getElementById('calcResult');
-        if (resultElement) {
-            resultElement.textContent = this.formatNumber(this.calcDisplay);
-        }
-    }
-
-    updateCalcExpression() {
-        const expressionElement = document.getElementById('calcExpression');
-        if (expressionElement) {
-            let expression = this.calcPreviousValue;
-            if (this.calcOperation !== '') {
-                const operatorSymbols = { '+': '+', '-': '-', '*': '×', '/': '÷' };
-                expression += ' ' + operatorSymbols[this.calcOperation] + ' ';
-            }
-            expressionElement.textContent = expression;
-        }
-    }
-
-    // Rate Alerts
-    createRateAlert(fromCurrency, toCurrency, targetRate, alertType) {
-        const alert = {
-            id: Date.now(),
-            fromCurrency,
-            toCurrency,
-            targetRate,
-            alertType, // 'above' or 'below'
-            created: new Date().toISOString(),
-            active: true,
-            triggered: false
-        };
-
-        this.rateAlerts.push(alert);
-        this.saveRateAlerts();
-        this.showSuccess(`Rate alert created: ${fromCurrency}/${toCurrency} ${alertType} ${targetRate}`);
-        this.checkRateAlerts(); // Check immediately
-        this.playSound('success');
-        this.triggerHaptic('success');
-        this.trackEvent('rate_alert_created', { fromCurrency, toCurrency, targetRate, alertType });
-    }
-
-    async checkRateAlerts() {
-        const activeAlerts = this.rateAlerts.filter(alert => alert.active && !alert.triggered);
-
-        for (const alert of activeAlerts) {
-            try {
-                const data = await this.fetchWithCache(`${this.apiUrl}/${alert.fromCurrency}`);
-                const currentRate = data.rates[alert.toCurrency];
-
-                if (currentRate) {
-                    let shouldTrigger = false;
-                    if (alert.alertType === 'above' && currentRate >= alert.targetRate) {
-                        shouldTrigger = true;
-                    } else if (alert.alertType === 'below' && currentRate <= alert.targetRate) {
-                        shouldTrigger = true;
-                    }
-
-                    if (shouldTrigger) {
-                        this.triggerRateAlert(alert, currentRate);
-                        alert.triggered = true;
-                        alert.triggeredDate = new Date().toISOString();
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking rate alert:', error);
-            }
-        }
-
-        this.saveRateAlerts();
-    }
-
-    triggerRateAlert(alert, currentRate) {
-        const message = `🔔 Rate Alert: ${alert.fromCurrency}/${alert.toCurrency} is now ${currentRate.toFixed(4)} (${alert.alertType} ${alert.targetRate})`;
-        this.showSuccess(message);
-        this.showNotification(message);
-        this.playSound('alert');
-        this.triggerHaptic('notification');
-        this.trackEvent('rate_alert_triggered', alert);
-    }
-
-    showRateAlertModal() {
-        const fromCurrency = document.getElementById('fromCurrency').value;
-        const toCurrency = document.getElementById('toCurrency').value;
-
-        const modal = this.createModal('Create Rate Alert', `
-            <div class="rate-alert-form">
-                <h4>Set Alert for ${fromCurrency}/${toCurrency}</h4>
-                <div class="form-group">
-                    <label>Alert Type</label>
-                    <select id="alertType" class="form-select">
-                        <option value="above">Alert when rate goes ABOVE</option>
-                        <option value="below">Alert when rate goes BELOW</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Target Rate</label>
-                    <input type="number" id="targetRate" class="form-input" step="0.0001" placeholder="Enter target rate">
-                </div>
-                <div class="form-actions">
-                    <button class="btn-primary" onclick="converter.createAlertFromModal('${fromCurrency}', '${toCurrency}')">
-                        Create Alert
-                    </button>
-                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">
-                        Cancel
-                    </button>
-                </div>
-                <div class="active-alerts">
-                    <h5>Active Alerts</h5>
-                    <div class="alerts-list">
-                        ${this.rateAlerts.filter(alert => alert.active).map(alert => `
-                            <div class="alert-item">
-                                <span>${alert.fromCurrency}/${alert.toCurrency} ${alert.alertType} ${alert.targetRate}</span>
-                                <button class="delete-alert" onclick="converter.deleteAlert(${alert.id})">×</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-        `);
-        this.showModal(modal);
-    }
-
-    createAlertFromModal(fromCurrency, toCurrency) {
-        const alertType = document.getElementById('alertType').value;
-        const targetRate = parseFloat(document.getElementById('targetRate').value);
-
-        if (!targetRate || targetRate <= 0) {
-            this.showError('Please enter a valid target rate');
-            return;
-        }
-
-        this.createRateAlert(fromCurrency, toCurrency, targetRate, alertType);
-        document.querySelector('.modal-overlay').remove();
-    }
-
-    deleteAlert(alertId) {
-        const index = this.rateAlerts.findIndex(alert => alert.id === alertId);
-        if (index > -1) {
-            this.rateAlerts.splice(index, 1);
-            this.saveRateAlerts();
-            this.showSuccess('Rate alert deleted');
-            this.showRateAlertModal(); // Refresh modal
-        }
     }
 
     // Currency News Integration
@@ -1760,7 +1383,6 @@ class CurrencyConverter {
 
     async refreshData() {
         await this.loadCurrencies();
-        this.checkRateAlerts();
         this.loadCurrencyNews();
         this.showSuccess('Data refreshed successfully');
         this.playSound('success');

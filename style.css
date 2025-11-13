@@ -258,7 +258,7 @@ body::before {
 
 @media (min-width: 1024px) {
   .app-container {
-    grid-template-columns: 300px 1fr 300px;
+    grid-template-columns: 1fr 300px;
     padding-bottom: var(--space-6);
   }
 }
@@ -840,6 +840,7 @@ body::before {
 @media (max-width: 1023px) {
   .app-container {
     grid-template-columns: 1fr;
+    padding: var(--space-8);
   }
 
   .sidebar {
@@ -1262,132 +1263,6 @@ body::before {
   transform: translateY(-1px);
 }
 
-/* Calculator Mode */
-.calculator-mode {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--glass-border-radius);
-  padding: var(--space-4);
-  backdrop-filter: var(--glass-backdrop);
-}
-
-.calc-display {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  padding: var(--space-3);
-  margin-bottom: var(--space-3);
-  text-align: right;
-  min-height: 80px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.calc-expression {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  margin-bottom: var(--space-1);
-  min-height: 20px;
-}
-
-.calc-result {
-  font-size: var(--text-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  font-family: 'Courier New', monospace;
-}
-
-.calc-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-2);
-}
-
-.calc-row {
-  display: contents;
-}
-
-.calc-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: var(--space-3);
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  backdrop-filter: blur(10px);
-}
-
-.calc-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-}
-
-.calc-btn:active {
-  transform: translateY(0);
-}
-
-.calc-btn.calc-clear {
-  background: linear-gradient(135deg, var(--error), #dc2626);
-  color: white;
-  border: none;
-}
-
-.calc-btn.calc-operator {
-  background: linear-gradient(135deg, var(--warning), #d97706);
-  color: white;
-  border: none;
-}
-
-.calc-btn.calc-equals {
-  background: linear-gradient(135deg, var(--success), #059669);
-  color: white;
-  border: none;
-}
-
-.calc-btn.calc-convert {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
-  border: none;
-  grid-column: span 2;
-}
-
-.calc-btn.calc-zero {
-  grid-column: span 2;
-}
-
-.calc-mode-toggle {
-  margin-top: var(--space-3);
-  text-align: center;
-}
-
-.calc-mode-toggle button {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: var(--space-2) var(--space-3);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-}
-
-.calc-mode-toggle button:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Rate Alerts */
-.rate-alert-form {
-  padding: var(--space-3);
-}
-
-.rate-alert-form h4 {
-  text-align: center;
-  margin-bottom: var(--space-4);
-  color: var(--text-primary);
-}
-
 .form-group {
   margin-bottom: var(--space-3);
 }
@@ -1430,52 +1305,6 @@ body::before {
 
 .btn-danger {
   background: linear-gradient(135deg, var(--error), #dc2626);
-  color: white;
-}
-
-.active-alerts {
-  margin-top: var(--space-4);
-}
-
-.active-alerts h5 {
-  margin-bottom: var(--space-2);
-  color: var(--text-primary);
-}
-
-.alerts-list {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.alert-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: var(--space-2);
-  margin-bottom: var(--space-2);
-}
-
-.delete-alert {
-  background: none;
-  border: none;
-  color: var(--error);
-  font-size: var(--text-lg);
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all var(--transition-normal);
-}
-
-.delete-alert:hover {
-  background: var(--error);
   color: white;
 }
 
