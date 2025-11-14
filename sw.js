@@ -4,13 +4,15 @@ const RUNTIME_CACHE = 'currency-converter-runtime-v3';
 const API_CACHE_EXPIRY_DAYS = 1;
 
 // Files to cache for offline functionality
+
+const SUBDIRECTORY = '/Currency-Converter';
 // 1. Files always needed for the app shell
 const coreFiles = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/manifest.json',
+    `${SUBDIRECTORY}/`,
+    `${SUBDIRECTORY}/index.html`,
+    `${SUBDIRECTORY}/style.css`,
+    `${SUBDIRECTORY}/script.js`,
+    `${SUBDIRECTORY}/manifest.json`,
 ];
 
 // 2. Local assets (often cause errors due to 404/case sensitivity)

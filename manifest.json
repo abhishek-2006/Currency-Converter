@@ -2,12 +2,12 @@
   "name": "Currency Converter Pro",
   "short_name": "CurrencyPro",
   "description": "Professional currency converter with real-time exchange rates and advanced features",
-  "start_url": ".",
+  "start_url": "/Currency-Converter/",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#6366f1",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "/Currency-Converter/",
   "lang": "en",
   "dir": "ltr",
   "categories": ["finance", "business", "productivity", "utilities"],
@@ -82,7 +82,7 @@
       "name": "Quick Convert",
       "short_name": "Convert",
       "description": "Open currency converter",
-      "url": ".",
+      "url": "/Currency-Converter/",
       "icons": [
         {
           "src": "assets/icon-96x96.png",
@@ -102,7 +102,7 @@
   "protocol_handlers": [
     {
       "protocol": "web+currency",
-      "url": ".?convert=%s"
+      "url": "/Currency-Converter/?convert=%s"
     }
   ]
 }
