@@ -306,8 +306,8 @@ async function syncCurrencyRates() {
 self.addEventListener('push', (event) => {
   const options = {
     body: 'Currency rates have been updated',
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
+    icon: 'assets/icon-192x192.png',
+    badge: 'assets/icon-192x192.png',
     tag: 'currency-update',
     renotify: true,
     data: {
