@@ -63,14 +63,14 @@
   ],
   "screenshots": [
     {
-      "src": "screenshot-desktop.png",
+      "src": "assets/screenshot-desktop.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Currency Converter Pro on desktop"
     },
     {
-      "src": "screenshot-mobile.png",
+      "src": "assets/screenshot-mobile.png",
       "sizes": "375x812",
       "type": "image/png",
       "form_factor": "narrow",
@@ -85,7 +85,7 @@
       "url": ".",
       "icons": [
         {
-          "src": "icon-96x96.png",
+          "src": "assets/icon-96x96.png",
           "sizes": "96x96"
         }
       ]

@@ -44,49 +44,53 @@ self.addEventListener('install', (event) => {
     console.log('SW: Installing service worker v3'); // Increment version log
 
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(async (cache) => {
-                console.log('SW: Caching core and static files.');
+      caches.open(CACHE_NAME)
+      .then(async (cache) => {
+        console.log('SW: Caching core and static files.');
 
-                // A. Cache CORE files strictly (All-or-Nothing for essential files)
-                await cache.addAll(coreFiles);
-                
-                // B. Cache local assets and CDN files resiliently (preventing install crash)
-                const allOtherFiles = [...ASSET_PATHS, ...cdnFiles];
-                
-                return Promise.all(
-                    allOtherFiles.map(resource => {
-                        let requestOptions = {};
-                        if (resource.startsWith('http')) {
-                            requestOptions.mode = 'no-cors'; // Critical for CDN fetching
-                        }
+        // A. Cache CORE files strictly (All-or-Nothing for essential files)
+        const coreCachePromises = coreFiles.map(resource => 
+          cache.add(resource).catch(error => {
+            console.error(`SW: FATAL: Core file failed to cache: ${resource}`, error);
+            throw error;
+          }));
+          
+          // B. Cache local assets and CDN files resiliently (preventing install crash)
+          const allOtherFiles = [...ASSET_PATHS, ...cdnFiles];
 
-                        return fetch(resource, requestOptions) 
-                            .then(response => {
-                                if (response.ok || response.type === 'opaque') {
-                                    return cache.put(resource, response);
-                                }
-                                console.warn(`SW: Failed to cache (Non-OK/Opaque) URL: ${resource}`);
-                                return Promise.resolve();
-                            })
-                            .catch(error => {
-                                console.error(`SW: Failed to cache (Network Error) URL: ${resource}`, error);
-                                return Promise.resolve(); // Allow installation to succeed
-                            });
-                    })
+          return Promise.all(
+            allOtherFiles.map(resource => {
+              let requestOptions = {};
+              if (resource.startsWith('http')) {
+                requestOptions.mode = 'no-cors'; // Critical for CDN fetching
+                }
+
+                return fetch(resource, requestOptions) 
+                .then(response => {
+                  if (response.ok || response.type === 'opaque') {
+                    return cache.put(resource, response);
+                  }
+                  console.warn(`SW: Failed to cache (Non-OK/Opaque) URL: ${resource}`);
+                  return Promise.resolve();
+                })
+                .catch(error => {
+                  console.error(`SW: Failed to cache (Network Error) URL: ${resource}`, error);
+                  return Promise.resolve(); // Allow installation to succeed
+                  }
                 );
-            })
-            .then(() => {
-                console.log('SW: Static files cached successfully (v3)');
-                return self.skipWaiting();
-            })
-            .catch(error => {
-                // This will only run if a critical 'coreFile' failed.
-                console.error('SW: Installation aborted due to critical error:', error);
-                throw error;
-            })
-    );
-});
+              })
+            );
+          })
+          .then(() => {
+            console.log('SW: Static files cached successfully (v3)');
+            return self.skipWaiting();
+          })
+          .catch(error => {
+            console.error('SW: Installation aborted due to critical error:', error);
+            throw error;
+          })
+        );
+      });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
