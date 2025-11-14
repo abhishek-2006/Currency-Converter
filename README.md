@@ -28,8 +28,6 @@ A professional, feature-rich currency converter with real-time exchange rates, a
 ### 🚀 Advanced Features
 - **Multi-Currency Conversion** - Convert to multiple currencies simultaneously
 - **Historical Rates** - 7-day historical rate analysis with interactive charts
-- **Currency Calculator** - Full-featured calculator for complex calculations
-- **Rate Alerts** - Set custom alerts for currency rate changes
 - **Currency Comparison** - Visual comparison of multiple conversion results
 - **Conversion History** - Track your recent conversions with detailed analytics
 - **Currency News** - Real-time financial news feed with currency relevance
@@ -198,19 +196,6 @@ The app works without configuration, but you can customize:
 - **Default Currencies**: Change `favoriteCurrencies` defaults
 - **Theme Preferences**: Modify CSS variables
 
-### Customization Examples
-```javascript
-// Change API timeout
-this.cacheTimeout = 10 * 60 * 1000; // 10 minutes
-
-// Change default favorites
-this.favoriteCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD'];
-
-// Modify color scheme
---primary: #your-color;
---secondary: #your-secondary-color;
-```
-
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -269,7 +254,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Modification
 - ✅ Distribution
 - ✅ Private use
-- ⚠️ Must include license and copyright notice
 
 ## 🙏 Acknowledgments
 
