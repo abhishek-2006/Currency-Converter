@@ -114,28 +114,31 @@ self.addEventListener('fetch', (event) => {
 
 // Handle API requests with network-first strategy
 async function handleApiRequest(request) {
-  const url = new URL(request.url);
-  const cache = await caches.open(RUNTIME_CACHE);
-  const cacheKey = `${url.origin}${url.pathname}${url.search}`;
-  let cachedResponse = await cache.match(cacheKey);
-
-  if (cachedResponse) {
+    const url = new new URL(request.url);
+    const start = performance.now(); // Start performance measurement
+    const cache = await caches.open(RUNTIME_CACHE);
+    const cacheKey = `${url.origin}${url.pathname}${url.search}`;
+    let cachedResponse = await cache.match(cacheKey);
+    
+    // --- STALE CHECK (Correct) ---
+    if (cachedResponse) {
         const lastCached = new Date(cachedResponse.headers.get('sw-cached-date'));
         const now = new Date();
-        const expiryTime = API_CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000; // 1 day in ms
+        const expiryTime = API_CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
         
         if (now.getTime() - lastCached.getTime() > expiryTime) {
             console.log('SW: API cache expired, fetching fresh data.');
             cachedResponse = null; // Treat as expired, force network
         }
     }
-  
-  try {
+    
+    try {
         // Try network first
         const networkResponse = await fetch(request);
+        const duration = performance.now() - start;
 
         if (networkResponse.ok) {
-            // Cache the successful response with a timestamp
+            // Success: Cache the fresh response and return it
             const responseToCache = networkResponse.clone();
             const headers = new Headers(responseToCache.headers);
             headers.set('sw-cached-date', new Date().toISOString());
@@ -147,24 +150,24 @@ async function handleApiRequest(request) {
             }));
 
             console.log('SW: API response updated and cached:', cacheKey);
+            console.log(`SW: API request to ${request.url} took ${duration.toFixed(2)}ms`);
             return networkResponse;
         }
 
-        // If network fails, return the (possibly stale) cached response
+        // If network response is NOT ok (e.g., 404, 500), throw error to trigger cache fallback
+        throw new Error(`Network response not ok: ${networkResponse.status}`); 
+
+    } catch (error) {
+        const duration = performance.now() - start; // Calculate duration if timing was missed by the initial throw (for total execution time)
+        console.error(`SW: Total failure or status error, took ${duration.toFixed(2)}ms. Attempting cache match for:`, cacheKey);
+
+        // Fallback to cache if network failed entirely or returned non-200 status
         if (cachedResponse) {
             console.log('SW: Network failed, returning stale cache for:', cacheKey);
             return cachedResponse;
         }
-        
-        throw new Error('Network response not ok and no cache available');
-    } catch (error) {
-        console.log('SW: Total failure, attempting final cache match:', cacheKey);
-        // Fallback to cache if network failed entirely
-        if (cachedResponse) {
-            return cachedResponse;
-        }
 
-        // Original offline error response
+        // Final Fallback: return offline error response
         return new Response(
             JSON.stringify({
                 error: 'Offline',
@@ -176,7 +179,7 @@ async function handleApiRequest(request) {
             }
         );
     }
-  }
+}
 
 // Handle static assets with cache-first strategy
 async function handleStaticRequest(request) {
@@ -389,39 +392,3 @@ async function clearCache() {
     console.error('SW: Manual cache clear failed:', error);
   }
 }
-
-// Performance monitoring
-self.addEventListener('fetch', (event) => {
-  if (event.request.url.includes('open.er-api.com')) {
-    const start = performance.now();
-
-    event.respondWith(
-      (async () => {
-        try {
-          const response = await fetch(event.request);
-          const duration = performance.now() - start;
-
-          // Log performance metrics
-          console.log(`SW: API request to ${event.request.url} took ${duration.toFixed(2)}ms`);
-
-          // Send metrics to clients for analytics (optional)
-          const clients = await self.clients.matchAll();
-          clients.forEach(client => {
-            client.postMessage({
-              type: 'PERFORMANCE_METRIC',
-              url: event.request.url,
-              duration: duration,
-              status: response.status
-            });
-          });
-
-          return response;
-        } catch (error) {
-          const duration = performance.now() - start;
-          console.error(`SW: API request to ${event.request.url} failed after ${duration.toFixed(2)}ms:`, error);
-          throw error;
-        }
-      })()
-    );
-  }
-});
