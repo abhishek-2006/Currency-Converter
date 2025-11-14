@@ -1,55 +1,91 @@
 // Currency Converter Pro Service Worker
-const CACHE_NAME = 'currency-converter-pro-v2';
-const RUNTIME_CACHE = 'currency-converter-runtime-v2';
+const CACHE_NAME = 'currency-converter-pro-v3';
+const RUNTIME_CACHE = 'currency-converter-runtime-v3';
 const API_CACHE_EXPIRY_DAYS = 1;
 
 // Files to cache for offline functionality
-const STATIC_CACHE_FILES = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'
+// 1. Files always needed for the app shell
+const coreFiles = [
+    '/',
+    '/index.html',
+    '/style.css',
+    '/script.js',
+    '/manifest.json',
 ];
 
+// 2. Local assets (often cause errors due to 404/case sensitivity)
 const ASSET_PATHS = [
-    // Include all your static assets that are NOT in the root
     '/assets/favicon.ico',
-    '/assets/icon-32x32.png',
     '/assets/icon-16x16.png',
-    '/assets/icon-180x180.png',
-    '/assets/icon-192x192.png',
-    '/assets/icon-144x144.png',
-    '/assets/icon-128x128.png',
+    '/assets/icon-32x32.png',
     '/assets/icon-72x72.png',
     '/assets/icon-96x96.png',
+    '/assets/icon-128x128.png',
+    '/assets/icon-144x144.png',
+    '/assets/icon-152x152.png',
+    '/assets/icon-180x180.png',
+    '/assets/icon-192x192.png',
+    '/assets/icon-384x384.png',
+    '/assets/icon-512x512.png',
 ];
 
-// API URLs that should be cached
+// 3. External dependencies (cause CORS/Network failure on addAll)
+const cdnFiles = [
+    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'
+];
+
 const API_CACHE_PATTERNS = [
-  /https:\/\/open\.er-api\.com\/v6\/latest\/.*/
+    /https:\/\/open\.er-api\.com\/v6\/latest\/.*/
 ];
 
-// Install event - cache static files
+// Install event - resilient caching logic
 self.addEventListener('install', (event) => {
-  console.log('SW: Installing service worker v2');
+    console.log('SW: Installing service worker v3'); // Increment version log
 
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('SW: Caching static files, including PWA icons.');
-        return cache.addAll(STATIC_CACHE_FILES);
-      })
-      .then(() => {
-        console.log('SW: Static files cached successfully (v2)');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('SW: Failed to cache static files:', error);
-      })
-  );
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(async (cache) => {
+                console.log('SW: Caching core and static files.');
+
+                // A. Cache CORE files strictly (All-or-Nothing for essential files)
+                await cache.addAll(coreFiles);
+                
+                // B. Cache local assets and CDN files resiliently (preventing install crash)
+                const allOtherFiles = [...ASSET_PATHS, ...cdnFiles];
+                
+                return Promise.all(
+                    allOtherFiles.map(resource => {
+                        let requestOptions = {};
+                        if (resource.startsWith('http')) {
+                            requestOptions.mode = 'no-cors'; // Critical for CDN fetching
+                        }
+
+                        return fetch(resource, requestOptions) 
+                            .then(response => {
+                                if (response.ok || response.type === 'opaque') {
+                                    return cache.put(resource, response);
+                                }
+                                console.warn(`SW: Failed to cache (Non-OK/Opaque) URL: ${resource}`);
+                                return Promise.resolve();
+                            })
+                            .catch(error => {
+                                console.error(`SW: Failed to cache (Network Error) URL: ${resource}`, error);
+                                return Promise.resolve(); // Allow installation to succeed
+                            });
+                    })
+                );
+            })
+            .then(() => {
+                console.log('SW: Static files cached successfully (v3)');
+                return self.skipWaiting();
+            })
+            .catch(error => {
+                // This will only run if a critical 'coreFile' failed.
+                console.error('SW: Installation aborted due to critical error:', error);
+                throw error;
+            })
+    );
 });
 
 // Activate event - clean up old caches
@@ -114,7 +150,7 @@ self.addEventListener('fetch', (event) => {
 
 // Handle API requests with network-first strategy
 async function handleApiRequest(request) {
-    const url = new new URL(request.url);
+    const url = new URL(request.url);
     const start = performance.now(); // Start performance measurement
     const cache = await caches.open(RUNTIME_CACHE);
     const cacheKey = `${url.origin}${url.pathname}${url.search}`;
