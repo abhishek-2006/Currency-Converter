@@ -17,18 +17,18 @@ const coreFiles = [
 
 // 2. Local assets (often cause errors due to 404/case sensitivity)
 const ASSET_PATHS = [
-    '/assets/favicon.ico',
-    '/assets/icon-16x16.png',
-    '/assets/icon-32x32.png',
-    '/assets/icon-72x72.png',
-    '/assets/icon-96x96.png',
-    '/assets/icon-128x128.png',
-    '/assets/icon-144x144.png',
-    '/assets/icon-152x152.png',
-    '/assets/icon-180x180.png',
-    '/assets/icon-192x192.png',
-    '/assets/icon-384x384.png',
-    '/assets/icon-512x512.png',
+    `${SUBDIRECTORY}/assets/favicon.ico`,
+    `${SUBDIRECTORY}/assets/icon-16x16.png`,
+    `${SUBDIRECTORY}/assets/icon-32x32.png`,
+    `${SUBDIRECTORY}/assets/icon-72x72.png`,
+    `${SUBDIRECTORY}/assets/icon-96x96.png`,
+    `${SUBDIRECTORY}/assets/icon-128x128.png`,
+    `${SUBDIRECTORY}/assets/icon-144x144.png`,
+    `${SUBDIRECTORY}/assets/icon-152x152.png`,
+    `${SUBDIRECTORY}/assets/icon-180x180.png`,
+    `${SUBDIRECTORY}/assets/icon-192x192.png`,
+    `${SUBDIRECTORY}/assets/icon-384x384.png`,
+    `${SUBDIRECTORY}/assets/icon-512x512.png`,
 ];
 
 // 3. External dependencies (cause CORS/Network failure on addAll)
