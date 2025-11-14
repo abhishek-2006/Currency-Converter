@@ -34,22 +34,58 @@ const API_CACHE_PATTERNS = [
 
 // Install event - cache static files
 self.addEventListener('install', (event) => {
-  console.log('SW: Installing service worker v2');
+    console.log('SW: Installing service worker v3');
 
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('SW: Caching static files, including PWA icons.');
-        return cache.addAll(STATIC_CACHE_FILES);
-      })
-      .then(() => {
-        console.log('SW: Static files cached successfully (v2)');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('SW: Failed to cache static files:', error);
-      })
-  );
+    const internalFiles = [
+        '/',
+        '/index.html',
+        '/style.css',
+        '/script.js',
+        '/manifest.json',
+    ];
+
+    const cdnFiles = [
+        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'
+    ];
+
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                // 1. Cache internal and local files (using addAll for simplicity, assuming local files are reliable)
+                const internalCachePromise = cache.addAll(internalFiles);
+
+                // 2. Cache external CDN files (resilient approach to prevent CORS/network failure)
+                const cdnCachePromises = Promise.all(
+                    cdnFiles.map(url => 
+                        fetch(url, { mode: 'no-cors' }) // Use no-cors for robust CDN fetching
+                        .then(response => {
+                            if (response.ok || response.type === 'opaque') {
+                                return cache.put(url, response);
+                            }
+                            console.warn(`SW: Failed to cache CDN URL (Status: ${response.status}): ${url}`);
+                            return Promise.resolve();
+                        })
+                        .catch(error => {
+                            console.error(`SW: Failed to fetch CDN URL: ${url}`, error);
+                            return Promise.resolve(); // Allow installation to proceed
+                        })
+                    )
+                );
+
+                // Wait for both internal and external caching processes to complete
+                return Promise.all([internalCachePromise, cdnCachePromises]);
+            })
+            .then(() => {
+                console.log('SW: Static files cached successfully (v3)');
+                return self.skipWaiting();
+            })
+            .catch(error => {
+                console.error('SW: Installation failed (critical internal file error):', error);
+                // Re-throw the error only if internal files fail, otherwise installation proceeds
+                throw error;
+            })
+    );
 });
 
 // Activate event - clean up old caches
