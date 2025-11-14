@@ -131,9 +131,10 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Handle static assets with cache-first strategy
-  if (STATIC_CACHE_FILES.includes(url.pathname) ||
-      url.pathname.startsWith('/fonts.googleapis.com/') ||
-      url.pathname.startsWith('/cdn.jsdelivr.net/')) {
+  if (url.origin === self.location.origin ||
+      url.origin === 'https://fonts.googleapis.com' ||
+      url.origin === 'https://fonts.gstatic.com' ||
+      url.origin === 'https://cdn.jsdelivr.net') {
     event.respondWith(handleStaticRequest(request));
     return;
   }
