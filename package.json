@@ -13,7 +13,7 @@
   },
   "author": {
     "name": "Abhishek Shah",
-    "email": "abhishek@example.com",
+    "email": "shahabhishek051@gmail.com",
     "url": "https://github.com/abhishek-2006"
   },
   "license": "MIT",
@@ -23,8 +23,6 @@
     "exchange-rate",
     "finance",
     "money",
-    "forex",
-    "trading",
     "banking",
     "pwa",
     "glassmorphism",
@@ -51,7 +49,7 @@
   "devDependencies": {
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
-    "html-validator": "^0.2.3",
+    "html-validator": "^7.1.0",
     "http-server": "^14.1.1",
     "prettier": "^3.2.5",
     "stylelint": "^16.2.1",
