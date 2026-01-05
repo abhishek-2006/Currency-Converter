@@ -1,4 +1,4 @@
-# 🚀 Currency Converter Pro - Demo Guide
+# 🚀 Currency Converter - Demo Guide
 
 ## Live Demo Experience
 
@@ -166,7 +166,7 @@ Power user shortcuts for efficiency:
 ### Quick Demo Steps
 1. Open the demo in your browser
 2. Enter an amount (try 100)
-3. Select USD as "From" currency
+3. Select INR as "From" currency
 4. Select EUR as "To" currency
 5. Click "Convert Currency"
 6. Try the advanced features in the sidebar
@@ -195,6 +195,4 @@ This demo showcases:
 - **User Experience** - Accessibility, performance, mobile optimization
 - **Code Quality** - Clean, maintainable, well-documented code
 
----
-
-**Experience the future of currency conversion today!** 🚀💱
+**Experience the future of currency conversion today!** 
