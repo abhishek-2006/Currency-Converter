@@ -22,7 +22,6 @@ Currency Converter Pro offers a comprehensive set of features designed for both 
 ## 🎨 Professional Design
 
 ### Glassmorphism UI
-- **Frosted Glass Effect** - Modern, translucent design elements
 - **Animated Backgrounds** - Dynamic gradient animations
 - **Floating Particles** - Subtle animated background effects
 - **Dark/Light Themes** - Toggle between themes with system detection
@@ -47,13 +46,6 @@ Convert one amount to multiple currencies simultaneously:
 - **Interactive Charts** - Hover tooltips with detailed information
 - **Statistical Analysis** - Highest, lowest, average rates
 - **Export Historical Data** - Download data for further analysis
-
-### Currency Calculator Mode
-Full-featured calculator built into the app:
-- Basic operations (+, -, ×, ÷)
-- Expression history display
-- Convert calculated amounts directly
-- Professional calculator styling
 
 ### Rate Alerts & Notifications
 - **Custom Rate Alerts** - Set notifications for specific rates
@@ -81,14 +73,6 @@ Real-time financial news feed:
 - **Offline Support** - Basic functionality without internet
 - **Background Sync** - Automatic data refresh when online
 - **Fast Loading** - Optimized for quick startup
-
-### Keyboard Shortcuts
-Power user shortcuts for efficiency:
-- `Ctrl + Enter` - Convert currency
-- `Ctrl + S` - Swap currencies
-- `Ctrl + K` - Focus amount input
-- `Ctrl + D` - Toggle theme
-- `Escape` - Reset form
 
 ### Accessibility
 - **WCAG 2.1 AA Compliant** - Full accessibility support
