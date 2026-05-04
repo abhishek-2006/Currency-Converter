@@ -1,305 +1,126 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Professional currency converter with real-time exchange rates, advanced features, and modern glassmorphism design">
-    <meta name="keywords" content="currency converter, exchange rates, finance, money converter, forex">
-    <meta name="author" content="Currency Converter">
-    <meta name="google-site-verification" content="o9RAO8Fk9Pu0NWEmCv4xW7Vlftk6N-K7m9otUXcGxds" />
-
-    <!-- Open Graph / Social Media -->
-    <meta property="og:title" content="Currency Converter">
-    <meta property="og:description" content="Professional currency converter with real-time rates and advanced features">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="assets/icon-192x192.png">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
-    <link rel="manifest" href="./manifest.json">
-
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#6366f1">
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Currency Converter">
-
-    <!-- External CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Preload Critical Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <title>Currency Converter - Professional Exchange Rates & Conversion</title>
+    <title>Currency Terminal | Pro Forex</title>
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { darkMode: 'media' }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap');
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .dark .glass { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); }
+        body { background: #0f172a; color: #f8fafc; overflow-x: hidden; }
+        .grid-bg { background-image: radial-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px); background-size: 30px 30px; }
+        .chart-pulse { height: 2px; background: linear-gradient(90deg, transparent, #6366f1, transparent); animation: sweep 3s linear infinite; }
+        @keyframes sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    </style>
 </head>
-<body>
-    <!-- Skip to main content for accessibility -->
-    <a href="#main-content" class="visually-hidden skip-link">Skip to main content</a>
+<body class="grid-bg min-h-screen p-4 md:p-10 font-sans transition-colors duration-500">
 
-    <!-- Animated particles background -->
-    <div class="particles" id="particles"></div>
-
-    <!-- Loading overlay -->
-    <div class="loading-overlay" id="loadingOverlay" role="dialog" aria-label="Loading">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Loading currency data...</div>
-        </div>
-    </div>
-
-    <!-- Message container for notifications -->
-    <div class="message-container" id="errorMessage" role="alert" aria-live="polite"></div>
-
-    <!-- Main container -->
-    <div class="main-container">
-        <!-- Header -->
-        <header class="header" role="banner">
-            <div class="header-content">
-                <div class="logo">
-                    <span class="logo-icon" role="img" aria-label="Currency symbol">💱</span>
-                    <h1 class="logo-text">Currency Converter</h1>
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12 border-b border-white/10 pb-8">
+            <div class="flex items-center gap-5">
+                <img src="logo.png" alt="Logo" class="w-12 h-12 rounded-xl ring-2 ring-indigo-500/20">
+                <div>
+                    <h1 class="text-2xl font-black italic tracking-tighter uppercase leading-none">Global<span class="text-indigo-500">Terminal</span></h1>
+                    <p class="text-[9px] font-mono font-bold text-slate-400 tracking-[0.4em] mt-1">NATION CURRENCIES ONLY • NO CRYPTO</p>
                 </div>
-                <button
-                    class="theme-toggle"
-                    id="themeToggle"
-                    aria-label="Toggle dark mode"
-                    title="Toggle theme (Ctrl+D)"
-                >
-                    <span id="themeIcon" role="img" aria-label="Theme icon">🌙</span>
-                </button>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-right hidden sm:block">
+                    <p id="marketStatus" class="text-[10px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-2 justify-end">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Market Live
+                    </p>
+                    <p id="timestamp" class="text-[9px] font-mono text-slate-500 mt-1 uppercase">Synced: --:--:--</p>
+                </div>
+                <button id="refreshBtn" class="p-3 glass rounded-full hover:text-indigo-500 transition-all active:scale-90"><i class="fas fa-sync-alt text-sm"></i></button>
             </div>
         </header>
 
-        <!-- Main content area -->
-        <main class="app-container" id="main-content">
-
-            <section class="converter-section" role="main">
-                <div class="converter-card glass-card">
-                    <h2 class="visually-hidden">Currency Converter</h2>
-
-                    <form id="converterForm" novalidate>
-                        <div class="form-group">
-                            <label for="amount" class="form-label">Amount</label>
-                            <input
-                                type="text"
-                                id="amount"
-                                class="form-input"
-                                placeholder="Enter amount to convert"
-                                inputmode="decimal"
-                                autocomplete="off"
-                                aria-describedby="amountHelp"
-                                required
-                            >
-                            <small id="amountHelp" class="form-text text-muted">
-                                Enter the amount you want to convert
-                            </small>
-                        </div>
-
-                        <div class="amount-presets" role="group" aria-label="Quick amount buttons">
-                            <button type="button" class="preset-button" data-amount="10">10</button>
-                            <button type="button" class="preset-button" data-amount="50">50</button>
-                            <button type="button" class="preset-button" data-amount="100">100</button>
-                            <button type="button" class="preset-button" data-amount="500">500</button>
-                            <button type="button" class="preset-button" data-amount="1000">1,000</button>
-                        </div>
-
-                        <div class="form-group">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label for="fromCurrency" class="form-label mb-0">From Currency</label>
-                            </div>
-
-                            <div class="currency-dropdown">
-                                <select
-                                    id="fromCurrency"
-                                    class="form-select currency-select"
-                                    aria-label="Select source currency"
-                                    required
-                                >
-                                    <option value="">Loading currencies...</option>
-                                </select>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <main class="lg:col-span-8 space-y-8">
+                <div class="glass rounded-[2rem] p-10 md:p-16 relative overflow-hidden group">
+                    <div class="chart-pulse absolute top-0 left-0 w-full opacity-30"></div>
+                    
+                    <div class="grid grid-cols-1 gap-12 relative z-10">
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">Base Amount</label>
+                            <div class="flex flex-col md:flex-row gap-6">
+                                <input type="number" id="amount" value="1000.00" class="flex-1 bg-transparent text-7xl font-black outline-none tabular-nums text-white focus:text-indigo-400 transition-all">
+                                <select id="fromSelect" class="bg-white/5 dark:bg-slate-900/50 p-5 rounded-2xl font-bold text-xl outline-none cursor-pointer border border-white/10 hover:border-indigo-500/50 transition-all"></select>
                             </div>
                         </div>
 
-                        <div class="swap-section">
-                            <button
-                                type="button"
-                                id="swapButton"
-                                class="swap-button"
-                                aria-label="Swap currencies"
-                                title="Swap currencies (Ctrl+S)"
-                            >
-                                <span class="swap-icon" role="img" aria-label="Swap">⇄</span>
+                        <div class="flex items-center gap-4">
+                            <div class="h-px flex-1 bg-white/10"></div>
+                            <button id="swapBtn" class="w-14 h-14 glass rounded-full hover:rotate-180 hover:scale-110 transition-all duration-700 flex items-center justify-center border-indigo-500/30">
+                                <i class="fas fa-exchange-alt text-indigo-500"></i>
                             </button>
+                            <div class="h-px flex-1 bg-white/10"></div>
                         </div>
 
-                        <div class="form-group">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label for="toCurrency" class="form-label mb-0">To Currency</label>
-                            </div>
-
-                            <div class="currency-dropdown">
-                                <select
-                                    id="toCurrency"
-                                    class="form-select currency-select"
-                                    aria-label="Select target currency"
-                                    required
-                                >
-                                    <option value="">Loading currencies...</option>
-                                </select>
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">Institutional Rate</label>
+                            <div class="flex flex-col md:flex-row gap-6">
+                                <div id="result" class="flex-1 text-7xl font-black text-indigo-500 tabular-nums truncate">0.00</div>
+                                <select id="toSelect" class="bg-white/5 dark:bg-slate-900/50 p-5 rounded-2xl font-bold text-xl outline-none cursor-pointer border border-white/10 hover:border-indigo-500/50 transition-all"></select>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="form-group">
-                            <button
-                                type="button"
-                                id="convertButton"
-                                class="button-primary"
-                                aria-label="Convert currency"
-                            >
-                                <span class="button-text">Convert Currency</span>
-                            </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass rounded-3xl p-8 flex items-center justify-between group cursor-help">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase">Conversion Accuracy</p>
+                            <h4 id="rateDetail" class="text-lg font-mono font-bold mt-1 text-indigo-400">1.0000 = 1.0000</h4>
                         </div>
-                    </form>
-
-                    <div class="result-container" id="result" role="region" aria-live="polite" aria-label="Conversion result">
+                        <i class="fas fa-info-circle text-slate-600 group-hover:text-indigo-500 transition"></i>
+                    </div>
+                    <div class="glass rounded-3xl p-8">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-3">Live Feed Strength</p>
+                        <div class="flex gap-1 h-2">
+                            <div class="flex-1 bg-indigo-500 rounded-full"></div>
+                            <div class="flex-1 bg-indigo-500 rounded-full"></div>
+                            <div class="flex-1 bg-indigo-500 rounded-full"></div>
+                            <div class="flex-1 bg-slate-700 rounded-full"></div>
                         </div>
-                </div>
-            </section>
-
-            <aside class="sidebar glass-card" role="complementary" aria-label="Conversion history and advanced features">
-                
-                <div class="sidebar-card">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="sidebar-title">📊 Recent Conversions</h2>
-                        <button
-                            id="clearHistory"
-                            class="btn btn-sm btn-outline-danger"
-                            aria-label="Clear history"
-                        >
-                            Clear
-                        </button>
-                    </div>
-
-                    <div class="history-container" id="historyContainer">
-                        <div class="history-list" id="historyList" role="list"></div>
                     </div>
                 </div>
-                
-                <div class="sidebar-card">
-                    <h3 class="sidebar-title">Advanced Features</h3>
-                    <div class="feature-buttons">
-                        <button id="multiCurrencyToggle" class="feature-btn" title="Convert to multiple currencies">
-                            🌍 Multi-Currency
-                        </button>
-                        <button id="exportHistory" class="feature-btn" title="Export conversion history">
-                            📥 Export
-                        </button>
-                        <button id="settingsButton" class="feature-btn" title="Application settings">
-                            ⚙️ Settings
-                        </button>
-                    </div>
+            </main>
+
+            <aside class="lg:col-span-4 space-y-6">
+                <div class="flex items-center justify-between mb-2 px-2">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Multi-Market Watch</h3>
+                    <button id="toggleDash" class="text-[10px] font-bold text-indigo-500 hover:text-indigo-400 uppercase tracking-tighter">Hide Watchlist</button>
                 </div>
 
-                <div class="sidebar-card">
-                    <h3 class="sidebar-title">📰 Currency News</h3>
-                    <div id="newsContainer"></div>
+                <div id="dashGrid" class="space-y-4">
+                    </div>
+
+                <div class="glass rounded-[2rem] p-8 space-y-6">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Asset Composition</h4>
+                    <div class="flex h-1.5 rounded-full overflow-hidden bg-slate-800">
+                        <div class="w-3/5 bg-indigo-500"></div>
+                        <div class="w-1/5 bg-blue-400"></div>
+                        <div class="w-1/5 bg-slate-600"></div>
+                    </div>
+                    <div class="flex justify-between text-[8px] font-bold text-slate-500 uppercase">
+                        <span>Majors (G10)</span>
+                        <span>Emerging</span>
+                        <span>Minors</span>
+                    </div>
                 </div>
             </aside>
-        </main>
-
-        <footer class="app-footer" role="contentinfo">
-            <div class="footer-container">
-                <div class="flex flex-col justify-center items-center text-center">
-                    <div class="footer-text-content">
-                        &copy; 2025 Currency Converter Pro | Designed by:
-                        <a href="https://github.com/abhishek-2006"
-                            target="_blank"
-                            rel="noopener"
-                            class="footer-link">
-                            Abhishek Shah
-                        </a>
-                    </div>
-                    <div class="footer-links">
-                        <a href="#privacy" class="footer-link">Privacy Policy</a> •
-                        <a href="#terms" class="footer-link">Terms of Service</a> •
-                        <a href="https://www.ecb.europa.eu/stats/exchange/eurofxref/html/index.en.html"
-                            target="_blank"
-                            rel="noopener"
-                            class="footer-link">
-                            Rate Source: ECB
-                        </a>
-                    </div>
-                    <div class="footer-features">
-                        <span class="feature-tag">🌍 150+ Currencies</span>
-                        <span class="feature-tag">📱 PWA Ready</span>
-                        <span class="feature-tag">🔒 Secure</span>
-                        <span class="feature-tag">⚡ Real-time</span>
-                    </div>
-                </div>
-            </div>
-        </footer>
+        </div>
     </div>
 
-    <!-- Scripts -->
     <script src="script.js"></script>
-
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((registration) => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch((registrationError) => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
-            });
-        }
-    </script>
-
-    <!-- Analytics and Performance Monitoring -->
-    <script>
-        // Performance monitoring
-        if ('performance' in window) {
-            window.addEventListener('load', () => {
-                const perfData = performance.getEntriesByType('navigation')[0];
-                const calculatedTime = perfData.duration || (perfData.loadEventEnd - perfData.fetchStart);
-                const loadTime = Math.max(0, calculatedTime);
-
-                // Log performance data (in production, send to analytics)
-                console.log(`Page load time: ${loadTime.toFixed(2)}ms`);
-            });
-        }
-
-        // Error tracking
-        window.addEventListener('error', (e) => {
-            console.error('JavaScript error:', e.error);
-            // In production, send to error tracking service
-        });
-
-        // Create floating particles
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 30;
-
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                particlesContainer.appendChild(particle);
-            }
-        }
-
-        // Initialize particles when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            createParticles();
-        });
-    </script>
 </body>
 </html>
